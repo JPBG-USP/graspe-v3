@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from roboticstoolbox.backends.swift import Swift
+from scipy.integrate import RK45
 
 """
     CONTROLLER SETTINGS
@@ -57,6 +58,7 @@ class SimulationCfg:
     controller: ControllerPID = None
     gravload_compensator: bool = True
     initial_q: np.ndarray =  None
+    _fast_simulation: bool = True
 
 
 """
@@ -85,6 +87,8 @@ class Simulation:
     _gravload_compensator: bool = True
 
     _q0: np.ndarray = None
+
+    _fast_simulation = True 
     
     def __init__(self, cfg: SimulationCfg):
         self._robot: rtb.ERobot = cfg.robot
@@ -93,6 +97,7 @@ class Simulation:
         self._decimation: int = cfg.decimation
         self._controller: ControllerPID = cfg.controller
         self._gravload_compensator: bool = cfg.gravload_compensator
+        self._fast_simulation: bool = cfg._fast_simulation
 
         if self._robot is None:
             print("No robot given by config")
@@ -125,8 +130,30 @@ class Simulation:
             return self._robot_state
 
         # explicit Euler integration
-        qd = qd + qdd * self._dt
-        q = q + qd * self._dt
+        if self._fast_simulation is True:
+            qd = qd + qdd * self._dt
+            q = q + qd * self._dt
+        else:
+            # RUNGE-KUTTA 4 using scipy.integrate.RK45
+            state = np.concatenate([q, qd])
+            dt = self._dt
+
+            integrator = RK45(
+                lambda t, y: np.concatenate([
+                    y[len(q):],  # dq/dt = qd
+                    self._robot.accel(y[:len(q)], y[len(q):], tau, self._gravity)  # qdd
+                ]),
+                t0=0.0,
+                y0=state,
+                t_bound=np.inf,
+                max_step=dt
+            )
+
+            integrator.step()
+            state_next = integrator.y
+
+            q = state_next[:len(q)]
+            qd = state_next[len(q):]
 
         # update state
         self._robot_state["q"] = q
@@ -153,8 +180,6 @@ class Simulation:
             self._action += self._robot.gravload(command)
 
 
-        
-
 if __name__ == "__main__":
 
     def desired_trajectory(t):
@@ -174,10 +199,11 @@ if __name__ == "__main__":
     cfg = SimulationCfg()
     cfg.controller = ControllerPID(gains)
     cfg.initial_q = desired_trajectory(0.0)
+    cfg._fast_simulation = False
 
     sim = Simulation(cfg)
 
-    num_steps = int(15.0/cfg.dt)
+    num_steps = int(2.0/cfg.dt)
 
     state = []
     pos_q = []
