@@ -1,4 +1,5 @@
 #include <PIDcontroller.h>
+#include <Arduino.h>
 
 PIDcontroller::PIDcontroller(float Kp, float Kd, float Ki, float dt)
     : _Kp(Kp), _Kd(Kd), _Ki(Ki), _dt(dt), e(0), e1(0), e2(0), last_action(0)
@@ -28,6 +29,7 @@ float PIDcontroller::action(float error) {
 
     // compute new action (incremental form)
     float u = last_action + q0 * e + q1 * e1 + q2 * e2;
+    u = constrain(u, -1, 1);
 
     // update last action
     last_action = u;
