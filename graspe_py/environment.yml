@@ -1,0 +1,11 @@
+name: graspe
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy
+  - sympy
+  - matplotlib
+  - scipy
+  - roboticstoolbox-python
+prefix: /home/joao/miniconda3/envs/rtb
