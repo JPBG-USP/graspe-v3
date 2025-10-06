@@ -10,14 +10,14 @@
 #define PIN_POT 33
 
 // PID gains
-#define KP 3.0
-#define KI 0.8
+#define KP 2.5
+#define KI 0.5
 #define KD 0.2
 #define DT 0.005 // 5 ms, 200Hz
 
 // Potenciomenter data
-#define POT_BEGIN 269.249
-#define POT_END 3934.1767
+#define POT_BEGIN 3934.1767
+#define POT_END 269.249
 
 // Kalman filter data
 #define POT_STD 13.552
@@ -70,24 +70,23 @@ void loop() {
     error = ((float)setpoint - x);
     
     // Compute PID action
-    u = pid_controller.action(error) * 255;
+    u = (int)(pid_controller.action(error) * 255);
     // Drive motor
-    motor1.action((int)u);
+    motor1.action(255);
     loop_time = millis();
-  }
 
-  // Debug logging
-  Serial.print("SP: ");
-  Serial.print(setpoint);
-  Serial.print(" | Pot: ");
-  Serial.print(pot_read);
-  Serial.print(" | Angle: ");
-  Serial.print(angle);
-  Serial.print(" | Kalman: ");
-  Serial.print(x);
-  Serial.print(" | Error: ");
-  Serial.print(error, 4);
-  Serial.print(" | Control: ");
-  Serial.println(u);
-  delay((int)((DT * 1000)/4)); // 1/4 of my delay 
+    // Debug logging
+    Serial.print("SP: ");
+    Serial.print(setpoint);
+    Serial.print(" | Pot: ");
+    Serial.print(pot_read);
+    Serial.print(" | Angle: ");
+    Serial.print(angle);
+    Serial.print(" | Kalman: ");
+    Serial.print(x);
+    Serial.print(" | Error: ");
+    Serial.print(error, 4);
+    Serial.print(" | Control: ");
+    Serial.println(u);
+  }
 }
