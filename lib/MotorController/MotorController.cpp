@@ -6,29 +6,34 @@ MotorController::MotorController(uint8_t intA, uint8_t intB)
 {
     pinMode(_intA, OUTPUT);
     pinMode(_intB, OUTPUT);
+
+    const uint32_t PWM_FREQ = 1000;   // 1 kHz 
+    const uint8_t PWM_RES = 8;        // 8 bits resolution (0-255)
+
+    ledcSetup(0, PWM_FREQ, PWM_RES);  // channel 0 -> _intA
+    ledcAttachPin(_intA, 0);
+
+    ledcSetup(1, PWM_FREQ, PWM_RES);  // channel 1 -> _intB
+    ledcAttachPin(_intB, 1);
 }
 
 void MotorController::action(int action) {
-    // Limit check (PWM on Arduino Uno is 0–255)
-    if (abs(action) > 255) {
-        //Serial.println("Error: action out of range (must be between -255 and 255)");
-        action = constrain(action, -255, 255);  // clamp to valid range
-    }
-    //Serial.print("Sending action: ");
-    //Serial.println(action);
+    // Limita a ação para 0–255
+    action = constrain(action, -255, 255);
+
     if (action == 0) {
-        // Motor off
-        digitalWrite(_intA, LOW);
-        digitalWrite(_intB, LOW);
+        // Stop
+        ledcWrite(0, 0);
+        ledcWrite(1, 0);
     }
     else if (action > 0) {
         // Forward
-        analogWrite(_intA, action);
-        digitalWrite(_intB, LOW);
+        ledcWrite(0, action);     
+        ledcWrite(1, 0);          
     }
     else { // action < 0
         // Reverse
-        digitalWrite(_intA, LOW);
-        analogWrite(_intB, abs(action));
+        ledcWrite(0, 0);                
+        ledcWrite(1, abs(action));      
     }
 }
