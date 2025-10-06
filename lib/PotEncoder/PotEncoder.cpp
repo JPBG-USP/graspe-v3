@@ -20,12 +20,22 @@ float PotEncoder::getAngle() {
     uint16_t pot_read = read();
     float angle;
 
-    if (pot_read < _pos_init) {
-        angle = 0.0f;
-    } else if (pot_read > _pos_end) {
-        angle = PI;
+    if (_pos_init < _pos_end) {
+        if (pot_read < _pos_init) {
+            angle = 0.0f;
+        } else if (pot_read > _pos_end) {
+            angle = PI;
+        } else {
+            angle = (float)(pot_read - _pos_init) / (float)(_pos_end - _pos_init) * PI;
+        }
     } else {
-        angle = (float)(pot_read - _pos_init) / (float)(_pos_end - _pos_init) * PI;
+        if (pot_read > _pos_init) {
+            angle = 0.0f;
+        } else if (pot_read < _pos_end) {
+            angle = PI;
+        } else {
+            angle = (float)(_pos_init - pot_read) / (float)(_pos_init - _pos_end) * PI;
+        }
     }
 
     return angle;
