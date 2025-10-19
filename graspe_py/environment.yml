@@ -1,5 +1,6 @@
 name: graspe
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - python=3.11
@@ -8,4 +9,7 @@ dependencies:
   - matplotlib
   - scipy
   - roboticstoolbox-python
-prefix: /home/joao/miniconda3/envs/rtb
+  - pyqtwebengine==5.15.7
+  - pyqtwebengine-qt5==5.15.17
+  - websockets==10.4
+  - pyserial

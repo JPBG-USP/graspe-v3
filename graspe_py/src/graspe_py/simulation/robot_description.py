@@ -34,9 +34,12 @@ Tc = 0
 Jm = 0
 B  = 0
 
+# Standart Positions
+qz = np.array([-0.994, 1.57, 0.64, 0.75])
+
 # Define robot links
 link0 = Link(
-    ET.Rz(qlim=[-np.pi/2, np.pi/2]),
+    ET.Rz(qlim=[0, np.pi]),
     r=r0, m=m0, I=I0, Tc=Tc, Jm=Jm, B=B
 )
 
@@ -46,7 +49,7 @@ link1 = Link(
 )
 
 link2 = Link(
-    ET.tz(l2) * ET.Ry(qlim=(-2.3, 0)),
+    ET.tz(l2) * ET.Ry(qlim=(0, 2.3)),
     r=r2, m=m2, I=I2, Tc=Tc, Jm=Jm, B=B
 )
 

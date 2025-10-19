@@ -139,7 +139,7 @@ class Simulation:
         self._robot_state["q"] = q
         self._robot_state["qd"] = qd
         self._robot_state["qdd"] = qdd
-
+        self._robot_state["tau"] = tau
         self._step += 1
 
         return self._robot_state

@@ -11,11 +11,11 @@
 
 // PID gains
 #define KP 2.5
-#define KI 0.5
-#define KD 0.2
+#define KI 2.0
+#define KD 0.12
 #define DT 0.005 // 5 ms, 200Hz
 
-// Potenciomenter data
+// Potentiometer data
 #define POT_BEGIN 3934.1767
 #define POT_END 269.249
 
@@ -32,42 +32,98 @@ PIDcontroller pid_controller(KP, KD, KI, DT);
 PotEncoder pot_encoder(PIN_POT, POT_BEGIN, POT_END); 
 
 // Global variables
-float setpoint = 1.0;
+float setpoint = 1.0f;
 unsigned long loop_time = millis();
 // Read Encoder 
 int pot_read;
 float angle;
-// Apply kalman filter and get error
+// Apply Kalman filter and get error
 float x;
 float error;
 // Compute PID action
 float u;
+// Buffer to store messages
+String buffer = "";
+bool receiving = false;
+
+// timeout for handshake in milliseconds
+const unsigned long HANDSHAKE_TIMEOUT_MS = 30000;
+
+bool handshake_ok = false;
+
+// Function to read complete messages from PC
+String readSerialMessage() {
+  while (Serial.available()) {
+    char c = Serial.read();
+    if (c == '<') {
+      buffer = "";
+      receiving = true;
+    } else if (c == '>') {
+      receiving = false;
+      String msg = buffer;
+      buffer = "";
+      return msg;
+    } else if (receiving) {
+      buffer += c;
+    }
+  }
+  return "";
+}
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("System starting...");  
-  Serial.println("Type a new setpoint (0-4095) and press Enter:");
+
+  Serial.println("<ESP_READY>");
+
+  unsigned long start = millis();
+
+  // Try handshake within a limited time
+  while (millis() - start < HANDSHAKE_TIMEOUT_MS) {
+    String msg = readSerialMessage();
+    if (msg == "HELLO") {
+      Serial.println("<HELLO_ACK>");
+      handshake_ok = true;
+      break;
+    }
+  }
+
+  if (!handshake_ok) {
+    // If handshake fails, restart after 5 seconds
+    Serial.println("<HANDSHAKE_FAILED>");
+    while (true) {
+      Serial.println("<NO_CONNECTION_RESTARTING>");
+      delay(5000);
+      ESP.restart();  // Restart the microcontroller
+    }
+  }
+
+  Serial.println("<HANDSHAKE_SUCCESS>");
+  Serial.println("<SYSTEM_READY>");
 }
 
 void loop() {
-  // --- Check if user sent a new setpoint ---
-  if (Serial.available() > 0) {
-    float val = Serial.parseFloat();   
-    if ((val > 0.0) && (val < 3.1415)) {
-      setpoint = val;
+  String msg = readSerialMessage();
+
+  if (msg.startsWith("SETQ1")) {
+    int spaceIndex = msg.indexOf(' ');
+    if (spaceIndex > 0) {
+      String valueStr = msg.substring(spaceIndex + 1);
+      float newSetpoint = valueStr.toFloat();
+      setpoint = newSetpoint;
+      Serial.print("<ACK SETQ1 ");
+      Serial.print(setpoint, 3);
+      Serial.println(">");
     }
-    while (Serial.available() > 0) Serial.read();
   }
 
-  if ( DT <= (loop_time - millis()))
-  {
-    // Read Encoder 
+  // Simulate reading the motor's position
+  if (millis() - loop_time >= DT) {
     pot_read = pot_encoder.read();
     angle = pot_encoder.getAngle();
     
-    // Apply kalman filter and get error
+    // Apply Kalman filter and get error
     x = kalman_filter.update(angle);
-    error = ((float)setpoint - x);
+    error = setpoint - x;
     
     // Compute PID action
     u = (int)(pid_controller.action(error) * 255);
@@ -75,18 +131,9 @@ void loop() {
     motor1.action(u);
     loop_time = millis();
 
-    // Debug logging
-    Serial.print("SP: ");
-    Serial.print(setpoint);
-    Serial.print(" | Pot: ");
-    Serial.print(pot_read);
-    Serial.print(" | Angle: ");
-    Serial.print(angle);
-    Serial.print(" | Kalman: ");
-    Serial.print(x);
-    Serial.print(" | Error: ");
-    Serial.print(error, 4);
-    Serial.print(" | Control: ");
-    Serial.println(u);
+    // Send motor position feedback
+    Serial.print("<posq1 ");
+    Serial.print(x, 3);  // Send the position with 3 decimal places
+    Serial.println(">");
   }
 }
