@@ -44,6 +44,20 @@ class SerialLink:
     def is_connected(self):
         return self.serial and self.serial.is_open
 
+    def handshake(self, retries=3, wait_time=0.5):
+        """Envia <HELLO> e aguarda <HELLO_ACK>."""
+        for i in range(retries):
+            self.send("HELLO")
+            start = time.time()
+            while time.time() - start < wait_time:
+                msg = self.get_message(timeout=0.1)
+                if msg == "HELLO_ACK":
+                    print("[SerialLink] Handshake bem-sucedido")
+                    return True
+            print(f"[SerialLink] Tentativa {i+1}/{retries} falhou.")
+        print("[SerialLink] Handshake falhou após tentativas.")
+        return False
+
     # ---------- Loop de leitura ----------
     def _read_loop(self):
         print("[SerialLink] Thread de leitura iniciada")
@@ -71,18 +85,54 @@ class SerialLink:
             return self._rx_queue.get(timeout=timeout)
         except queue.Empty:
             return None
+        
+    def send(self, msg: str):
+        """Envia mensagem <msg>"""
+        if not self.is_connected():
+            print("[SerialLink] Não conectado.")
+            return False
+        frame = STX + msg.encode() + ETX
+        try:
+            self.serial.write(frame)
+            print(f"[TX] {msg}")
+            return True
+        except serial.SerialException as e:
+            print(f"[SerialLink] Erro no envio: {e}")
+            return False
 
-    # ---------- Função para obter a posição do motor 1 ----------
+    # ---------- Função para obter a posição do motor 2 ----------
     def obter_posicao_motor(self):
-        msg = self.get_message(timeout=1)  # Espera até 1 segundo pela mensagem
-        if msg:
-            if msg.startswith("<posq1"):
-                dados = msg[6:].strip('>')  # Retira o "<posq1" e captura o valor
-                try:
-                    motor_position = float(dados)  # Converte o valor para float
-                    return motor_position  # Retorna a posição do motor 1
-                except ValueError:
-                    print("Erro ao converter os dados de posição.")
-            elif msg == "<ACK>":
-                print("[SerialLink] Recebido ACK da ESP32")
-        return None
+        """
+        Lê mensagens no formato <posqXVALOR> e retorna (X, VALOR)
+        Exemplo: "<posq2 123.456>" -> (2, 123.456)
+        """
+        msg: str = self.get_message(timeout=1)
+        if not msg:
+            print("not msg")
+            return None, None
+
+        # Exemplo esperado: <posq1 123.456>
+        if msg.startswith("posq"):
+            try:
+                # Extrai o número do motor logo após 'posq'
+                if msg[4].isdigit():
+                    motor_index = int(msg[4])
+                else:
+                    print("Fudeu, não é digito")
+
+                # Extrai o valor numérico restante
+                valor_str = msg[5:]
+                print(valor_str)
+                motor_position = float(valor_str)
+
+                return motor_index, motor_position
+
+            except Exception as e:
+                print(f"[SerialLink] Erro ao interpretar mensagem de posição: {e}")
+
+        elif msg == "<ACK>":
+            print("[SerialLink] Recebido ACK da ESP32")
+
+        else:
+            print("[SerialLink] Mensagem não começa com <posq")
+        return None, None

@@ -2,20 +2,20 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 from graspe_py.simulation import GRASPE_ROBOT
+import tkinter as tk
 
-def inicializar_visualizacao(frame_esquerda):
-    import tkinter as tk
+def robot_view(frame: tk.Frame, title: str | None = None):
 
-    frame_visualizacao = tk.Frame(frame_esquerda, bg="white")
-    frame_visualizacao.pack(fill="both", expand=True, padx=20, pady=20)
+    view_frame = tk.Frame(frame, bg="white")
+    view_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-    titulo_label = tk.Label(
-        frame_visualizacao,
-        text="Visualização 3D",
+    title = tk.Label(
+        view_frame,
+        text= title if title is not None else "Vizualização 3D",
         bg="white",
         font=("Arial", 14, "bold")
     )
-    titulo_label.pack(pady=(10, 5))
+    title.pack(pady=(10, 5))
 
     fig = Figure(figsize=(6, 6))
     ax = fig.add_subplot(111, projection="3d")
@@ -23,7 +23,7 @@ def inicializar_visualizacao(frame_esquerda):
     ax.set_ylabel("Y [m]")
     ax.set_zlabel("Z [m]")
 
-    canvas = FigureCanvasTkAgg(fig, master=frame_visualizacao)
+    canvas = FigureCanvasTkAgg(fig, master=view_frame)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=10)
 

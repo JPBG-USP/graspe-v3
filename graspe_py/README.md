@@ -45,3 +45,10 @@ You can choose the simulation time by passin `--time`
 ```bash
 python graspe_py/src/graspe_py/run_simulation.py --time 5.0
 ``` 
+
+### Running Interface
+To run the user interface:
+
+```bash
+python -m graspe_py.gui.main
+```
