@@ -1,6 +1,6 @@
 from typing import Callable, Dict
 import roboticstoolbox as rtb
-from robot_description import GRASPE_ROBOT
+from .robot_description import GRASPE_ROBOT
 from matplotlib import pyplot as plt
 import numpy as np
 from tqdm import tqdm
@@ -159,7 +159,7 @@ class Simulation:
         self._robot_state["q"] = q
         self._robot_state["qd"] = qd
         self._robot_state["qdd"] = qdd
-
+        self._robot_state["tau"] = tau
         self._step += 1
 
         return self._robot_state

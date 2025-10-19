@@ -1,6 +1,6 @@
 from typing import Callable
 import roboticstoolbox as rtb
-from robot_description import GRASPE_ROBOT
+from .robot_description import GRASPE_ROBOT
 from matplotlib import pyplot as plt
 import numpy as np
 from tqdm import tqdm
