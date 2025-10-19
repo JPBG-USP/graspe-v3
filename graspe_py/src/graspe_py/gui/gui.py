@@ -24,7 +24,7 @@ def sim_and_real_windows():
     # Config main window
     window = tk.Tk()
     window.title("Grasp-E Interface")
-    window.geometry("1000x600")
+    window.geometry("1200x800")
     window.configure(
         bg="purple",
     )

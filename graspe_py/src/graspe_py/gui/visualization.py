@@ -7,7 +7,7 @@ import tkinter as tk
 def robot_view(frame: tk.Frame, title: str | None = None):
 
     view_frame = tk.Frame(frame, bg="white")
-    view_frame.pack(fill="both", expand=True, padx=20, pady=20)
+    view_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
     title = tk.Label(
         view_frame,
@@ -15,7 +15,7 @@ def robot_view(frame: tk.Frame, title: str | None = None):
         bg="white",
         font=("Arial", 14, "bold")
     )
-    title.pack(pady=(10, 5))
+    title.pack(pady=(5, 5))
 
     fig = Figure(figsize=(6, 6))
     ax = fig.add_subplot(111, projection="3d")
