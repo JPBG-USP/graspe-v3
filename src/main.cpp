@@ -72,7 +72,7 @@ void loop() {
     // Compute PID action
     u = (int)(pid_controller.action(error) * 255);
     // Drive motor
-    motor1.action(255);
+    motor1.action(u);
     loop_time = millis();
 
     // Debug logging
