@@ -5,13 +5,13 @@
 ## Features
 
 - Modular architecture for simulation and control
-- Easy configuration using YAML environment files
 - Support for DC motor modeling and kinematic analysis
 - Compatible with [Robotics Toolbox for Python](https://github.com/petercorke/robotics-toolbox-python)
 
 ## Installation
 
 ### 1. Clone the repository
+If you haven't cloned yet.
 ```bash
 git clone https://github.com/JPBG-USP/graspe-v3.git
 cd graspe-v3
@@ -27,7 +27,7 @@ conda activate graspe
 ```
 
 ### 3. Install the package in editable mode
-This allows live updates when editing the source code.
+This install the graspe python package and allows live updates when editing the source code.
 
 ```bash
 pip install -e grape_py/

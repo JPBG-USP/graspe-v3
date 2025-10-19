@@ -9,3 +9,8 @@ This project was developed as part of an academic assignment during our undergra
 The Grasp-e project consists of a robotic manipulator designed to implement the thinning and harvesting technique in grapevines, with a special focus on table grapes.
 
 This is the third version of Grasp-e, soon more information will be available.
+
+# Python package
+
+We also developed a Python package that includes a graphical interface to connect with the robot, simulation tools with control modules, real robot data analysis, and more.
+You can learn more about it [here](./graspe_py/README.md) 
