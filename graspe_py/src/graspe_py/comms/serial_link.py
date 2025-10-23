@@ -19,7 +19,7 @@ class SerialLink:
         self.serial = None
         self._running = False
         self._rx_buffer = bytearray()
-        self._rx_queue = queue.Queue()
+        self._rx_queue = queue.Queue(maxsize=50)
         self._rx_thread = None
 
     # ---------- Conexão ----------
@@ -72,7 +72,10 @@ class SerialLink:
                             if start_idx != -1:
                                 frame = self._rx_buffer[start_idx+1:-1]
                                 msg = frame.decode(errors="ignore").strip()
-                                self._rx_queue.put(msg)
+                                if self._rx_queue.full():
+                                    self._rx_queue.get_nowait() 
+                                self._rx_queue.put_nowait(msg)
+
                             self._rx_buffer.clear()
             except Exception as e:
                 print(f"[SerialLink] Erro na leitura: {e}")
@@ -122,6 +125,7 @@ class SerialLink:
 
                 # Extrai o valor numérico restante
                 valor_str = msg[5:]
+                print(msg)
                 print(valor_str)
                 motor_position = float(valor_str)
 

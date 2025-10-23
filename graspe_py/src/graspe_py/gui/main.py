@@ -35,7 +35,7 @@ draw_robot(np.deg2rad(q_init_deg), ax_3d_2, canvas_3d_2)
 sliders = criar_sliders(frame_direita, q_init_deg, qlims_deg, q_atual_deg, draw_robot, ax_3d_1, canvas_3d_1)
 
 # cria o frame de registro de posições no frame direito
-criar_frame_registro(frame_direita, q_atual_deg, draw_robot, window, ax_3d_1, canvas_3d_1)
+criar_frame_registro(frame_direita, q_atual_deg, draw_robot, window, ax_3d_2, canvas_3d_2)
 
 # Cria o link serial e o frame de controle no frame direito
 link = SerialLink(port="/dev/ttyACM0", baudrate=115200)
@@ -61,12 +61,11 @@ def update_real_robot():
         if motor_idx is None:
             pass
         else:
-            q_sim_deg[motor_idx-1] = pos
-            # print(q_sim_deg)
-            draw_robot(np.deg2rad(q_sim_deg), ax_3d_1, canvas_3d_1)
+            q_real_deg[motor_idx-1] = pos
+            draw_robot(np.deg2rad(q_real_deg), ax_3d_1, canvas_3d_1)
 
-    # recall again this function after 200ms
-    window.after(200, update_real_robot)
+    # recall again this function after 40ms
+    window.after(40, update_real_robot)
 
 # Adicionando a função de callback para cada slider
 for i, slider in enumerate(sliders):
