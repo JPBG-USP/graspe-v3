@@ -133,7 +133,7 @@ void loop() {
 
     // Send motor position feedback
     Serial.print("<posq1 ");
-    Serial.print(x, 3);  // Send the position with 3 decimal places
+    Serial.print(x * 180.0/3.1415, 3);  // Send the position with 3 decimal places
     Serial.println(">");
   }
 }
