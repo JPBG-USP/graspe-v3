@@ -11,17 +11,17 @@
  * @param P_init The initial estimation error covariance for the Kalman filter
  */
 MotorEncoder::MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float std, float Q, float x_init, float P_init)
-    : _potPin(potPin), _pos_init(pos_init), _pos_end(pos_end), _std(std), _q(Q), _x(x_init), _p(P_init)
+    : _potPin(potPin), _pos_init(pos_init), _pos_end(pos_end),
+      _std(std), _r(std*std), _q(Q), _x(x_init), _p(P_init)
 {
     pinMode(_potPin, INPUT);
-    updateKalmanVariables();
 }
 
 /**
  * @brief Read the raw ADC value from the potentiometer
  * @return uint16_t The raw ADC value
  */
-uint16_t MotorEncoder::readPot() {
+uint16_t MotorEncoder::readPot() const {
     return analogRead(_potPin);
 }
 
@@ -33,7 +33,7 @@ uint16_t MotorEncoder::readPot() {
  *
  * @return A float between 0.0 and PI representing the potentiometer angle in radians.
  */
-float MotorEncoder::getAngle() {
+float MotorEncoder::getAngle() const {
     uint16_t pot_read = readPot();
     float angle;
 

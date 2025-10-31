@@ -18,14 +18,11 @@ private:
     float _x; 
     float _p;
     float _q;
-    void updateKalmanVariables(){
-        _r = _std * _std;
-    }
 
 public:
     MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float std, float Q, float x_init, float P_init);
-    uint16_t readPot();
-    float getAngle();
+    uint16_t readPot() const;
+    float getAngle() const;
     float getFilteredAngle();
 };
 
