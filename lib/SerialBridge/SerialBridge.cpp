@@ -29,6 +29,8 @@ bool SerialBridge::performHandshake() {
     unsigned long start = millis();
     unsigned long blink_time = start;
 
+    serial.println("<ESP_READY>");
+
     while (millis() - start < handshakeTimeout) {
         String msg = readMessage();
         if (msg == "HELLO") {
@@ -79,7 +81,7 @@ bool SerialBridge::performHandshake() {
  * 
  * @return String The message content between the '<' and '>' delimiters, excluding the delimiters themselves.
  */
-String SerialBridge::readMessage() {
+String SerialBridge::readMessage(){
 
     String msg = "";
     bool receiving = false;
@@ -117,7 +119,7 @@ String SerialBridge::readMessage() {
  * @return SerialBridgeCommands::Command A struct representing the parsed command,
  *         including the command type and associated joint or manipulator positions.
  */
-SerialBridgeCommands::Command SerialBridge::readCommand() {
+SerialBridgeCommands::Command SerialBridge::readCommand(){
     SerialBridgeCommands::Command cmd;
     String msg = readMessage();
 
@@ -149,4 +151,55 @@ SerialBridgeCommands::Command SerialBridge::readCommand() {
         cmd.data.manipulator.q4 = msg.substring(fourthSpace + 1).toFloat();
         return cmd;
     }
+    return cmd;
+}
+
+/**
+ * @brief Sends an acknowledgment message for a received command over the serial interface.
+ * 
+ * This function constructs and sends an acknowledgment message based on the type of command
+ * received. It supports acknowledgments for both single joint commands (SETQ) and full manipulator
+ * commands (SETALLQ).
+ * 
+ * Acknowledgment message formats:
+ * - For single joint command: "<ACK_SETQ<joint_index> <position>>"
+ *   - Example: "<ACK_SETQ1 45.0>"
+ * - For full manipulator command: "<ACK_SETALLQ <q1> <q2> <q3> <q4>>"
+ *   - Example: "<ACK_SETALLQ 10.0 20.0 30.0 40.0>"
+ * 
+ * @param cmd The command structure containing the command type and associated data.
+ * @return true if the acknowledgment message was sent successfully.
+ * @return false if the command type is unrecognized.
+ */
+bool SerialBridge::sendCommandAck(SerialBridgeCommands::Command cmd){
+    String ack_msg = "ACK_";
+    switch (cmd.type)
+    {
+    case SerialBridgeCommands::SET_JOINT_POSITION:
+        ack_msg += "SETQ" + String(cmd.data.joint.joint_idx) + " " + String(cmd.data.joint.pos);
+        sendMessage(ack_msg);
+        return true;
+    case SerialBridgeCommands::SET_ALL_JOINT_POSITIONS:
+        ack_msg += "SETALLQ " + String(cmd.data.manipulator.q1) + " " + String(cmd.data.manipulator.q2)
+                    + " " + String(cmd.data.manipulator.q3) + " " + String(cmd.data.manipulator.q4);
+        sendMessage(ack_msg);
+        return true;
+    default:
+        return false;;
+    }
+}
+
+/**
+ * @brief Sends a formatted message over the serial interface.
+ * 
+ * This function takes a message string, formats it by enclosing it within
+ * angle brackets ('<' and '>'), and sends it over the configured serial port.
+ * 
+ * Example:
+ * - Input message: "HELLO"
+ * - Sent message: "<HELLO>"
+ */
+void SerialBridge::sendMessage(const String& msg){
+    String formated_msg = "<" + msg + ">";
+    serial.println(formated_msg);
 }

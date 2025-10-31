@@ -4,64 +4,57 @@
 #include <Arduino.h>
 #include <GraspeGPIO.h>
 
-class SerialBridge {
-    private:
-        HardwareSerial& serial;
-        unsigned long handshakeTimeout;
-        String readMessage();
-
-    public:
-        SerialBridge(HardwareSerial& serialPort, unsigned long handshakeTimeoutMs);
-        bool performHandshake();
-        SerialBridgeCommands::Command readCommand();
-
-};
-
 namespace SerialBridgeCommands
 {
-    /**
-     * List of command types supported by the SerialBridge.
-     */
+    /// @brief List of command types supported by the SerialBridge.
     enum CommandType
     {
         SET_JOINT_POSITION,
         SET_ALL_JOINT_POSITIONS
     };
 
-
-    /**
-     * The command to set a single Graspe joint position. (in radians)
-     */
-    typedef struct
+    /// @brief The command to set a single Graspe joint position. (in radians)
+    struct JointPosCmd
     {
-        u_int8_t joint_idx;
+        uint8_t joint_idx;  // usa uint8_t (tipo padrão em Arduino)
         float pos;
-    } JointPosCmd;
+    };
 
-
-    /**
-     * The command to set all Graspe joint positions at once. (in radians)
-     */
-    typedef struct
+    /// @brief The command to set all Graspe joint positions at once. (in radians)
+    struct GraspeJointPosCmd
     {
         float q1;
         float q2;
         float q3;
         float q4;
-    } GraspeJointPosCmd;
+    };
 
-    /**
-     * The general command structure.
-     */
-     typedef struct Command {
+    /// @brief The general command structure.
+    struct Command
+    {
         CommandType type;   // Indica se é junta ou manipulador
-        union {
+        union
+        {
             JointPosCmd joint;
             GraspeJointPosCmd manipulator;
         } data;
     };
+} // namespace SerialBridgeCommands
 
+class SerialBridge
+{
+private:
+    HardwareSerial& serial;
+    unsigned long handshakeTimeout;
+    String readMessage();
+    void sendMessage(const String& message);
 
-}
+public:
+    SerialBridge(HardwareSerial& serialPort, unsigned long handshakeTimeoutMs);
+    bool performHandshake();
+    SerialBridgeCommands::Command readCommand();
+    bool sendCommandAck(SerialBridgeCommands::Command cmd);
+
+};
 
 #endif // _SERIAL_BRIDGE_H_

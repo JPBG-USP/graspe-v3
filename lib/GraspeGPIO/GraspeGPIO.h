@@ -25,4 +25,13 @@
 #define MOTOR3_ENCODER_PIN 34
 #define MOTOR4_ENCODER_PIN 35
 
+namespace GraspeGPIO {
+    // Function to initialize GPIO pins
+    inline void initGPIO(){
+        pinMode(LED_ERROR_PIN, OUTPUT);
+        pinMode(LED_WARNING_PIN, OUTPUT);
+        pinMode(LED_SUCCESS_PIN, OUTPUT);
+    };
+}
+
 #endif // _GRASPE_GPIO_H_
