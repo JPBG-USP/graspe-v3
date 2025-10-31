@@ -9,6 +9,7 @@ namespace SerialBridgeCommands
     /// @brief List of command types supported by the SerialBridge.
     enum CommandType
     {
+        NO_COMMAND,
         SET_JOINT_POSITION,
         SET_ALL_JOINT_POSITIONS
     };
@@ -16,7 +17,7 @@ namespace SerialBridgeCommands
     /// @brief The command to set a single Graspe joint position. (in radians)
     struct JointPosCmd
     {
-        uint8_t joint_idx;  // usa uint8_t (tipo padrão em Arduino)
+        uint8_t joint_idx;
         float pos;
     };
 
@@ -32,7 +33,7 @@ namespace SerialBridgeCommands
     /// @brief The general command structure.
     struct Command
     {
-        CommandType type;   // Indica se é junta ou manipulador
+        CommandType type;
         union
         {
             JointPosCmd joint;

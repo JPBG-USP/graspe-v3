@@ -30,6 +30,9 @@ void loop() {
   else if (command.type == SerialBridgeCommands::SET_ALL_JOINT_POSITIONS)
   {
     Serial.println("Received SET_ALL_JOINT_POSITIONS command");
+  } else if (command.type == SerialBridgeCommands::NO_COMMAND)
+  {
+    Serial.println("No valid command received");
   }
   serialBridge.sendCommandAck(command);
   delay(1000);

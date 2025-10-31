@@ -128,29 +128,70 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
         cmd.type = SerialBridgeCommands::SET_JOINT_POSITION;
 
         // Extract joint index
-        cmd.data.joint.joint_idx = msg.substring(4,5).toInt();
+        String jointStr = msg.substring(4,5);
+        if (jointStr.length() == 0 || jointStr.toInt() < 0) {
+            cmd.type = SerialBridgeCommands::NO_COMMAND;
+            return cmd;
+        }
+        cmd.data.joint.joint_idx = jointStr.toInt();
 
         // Extract position value
         int spaceIndex = msg.indexOf(' ');
-        cmd.data.joint.pos = msg.substring(spaceIndex + 1).toFloat();
+        String posStr = msg.substring(spaceIndex + 1);
+        if (posStr.length() == 0 || (posStr.length() == msg.length())) {
+            cmd.type = SerialBridgeCommands::NO_COMMAND;
+            return cmd;
+        }
+        cmd.data.joint.pos = posStr.toFloat();
+
         return cmd;
     }
 
-    if(msg.startsWith("SETALLQ")){
+    // If command is to set all joint positions
+    if (msg.startsWith("SETALLQ")) {
         cmd.type = SerialBridgeCommands::SET_ALL_JOINT_POSITIONS;
 
-        // Extract all joint positions
-        int firstSpace = msg.indexOf(' ');
-        int secondSpace = msg.indexOf(' ', firstSpace + 1);
-        int thirdSpace = msg.indexOf(' ', secondSpace + 1);
-        int fourthSpace = msg.indexOf(' ', thirdSpace + 1);
+        float values[4] = {0};
+        int start = msg.indexOf(' ') + 1;
+        bool valid = true;
 
-        cmd.data.manipulator.q1 = msg.substring(firstSpace + 1, secondSpace).toFloat();
-        cmd.data.manipulator.q2 = msg.substring(secondSpace + 1, thirdSpace).toFloat();
-        cmd.data.manipulator.q3 = msg.substring(thirdSpace + 1, fourthSpace).toFloat();
-        cmd.data.manipulator.q4 = msg.substring(fourthSpace + 1).toFloat();
+        for (int i = 0; i < 4; i++) {
+            if (start <= 0) {
+                valid = false;
+                break;
+            }
+
+            int end = msg.indexOf(' ', start);
+            String part;
+            if (end == -1) {
+                part = msg.substring(start);
+                start = -1;
+            } else {
+                part = msg.substring(start, end);
+                start = end + 1;
+            }
+
+            if (part.length() == 0) {
+                valid = false;
+                break;
+            }
+
+            values[i] = part.toFloat();
+        }
+
+        if (!valid || start != -1) {
+            cmd.type = SerialBridgeCommands::NO_COMMAND;
+            return cmd;
+        }
+
+        cmd.data.manipulator.q1 = values[0];
+        cmd.data.manipulator.q2 = values[1];
+        cmd.data.manipulator.q3 = values[2];
+        cmd.data.manipulator.q4 = values[3];
+
         return cmd;
     }
+    cmd.type = SerialBridgeCommands::NO_COMMAND;
     return cmd;
 }
 
