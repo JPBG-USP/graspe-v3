@@ -2,9 +2,10 @@
 #include <GraspeGPIO.h>
 #include <SerialBridge.h>
 
-#define HANDSHAKE_TIMEOUT_MS 10000 // 10 seconds timeout for handshake
-#define CONTROL_LOOP_DELAY_MS 20   // 50 hz control loop
-#define SERIAL_LOOP_DELAY_MS 100   // 10 hz serial communication loop
+#define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
+#define CONTROL_LOOP_DELAY_MS 20      // 50 hz control loop
+#define SERIAL_LOOP_DELAY_MS 100      // 10 hz serial communication loop
+#define HANDSHAKE_RETRY_DELAY_MS 2000 // 2 seconds delay before retrying handshake
 
 // Multi Treading Task Handles
 TaskHandle_t controlLoopTaskHandle;
@@ -24,6 +25,20 @@ void controlLoopTask(void * parameter) {
 }
 
 void serialBridgeTask(void * parameter) {
+
+  // Initialize Serial and perform handshake
+  Serial.begin(115200);
+  while (serialBridge.performHandshake() == false)
+  {
+    GraspeGPIO::indicateStatus(true, false, false);
+    Serial.println("<NO_CONNECTION_TRYING_AGAIN>");
+    Serial.flush();
+    vTaskDelay(pdMS_TO_TICKS(HANDSHAKE_RETRY_DELAY_MS));;
+    GraspeGPIO::indicateStatus(false, false, false);
+  }
+  Serial.println("<SYSTEM_READY>");
+
+  // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(SERIAL_LOOP_DELAY_MS);
 
@@ -46,19 +61,6 @@ void setup() {
         controlLoopTask, "ControlTask", 4096, NULL, 2, &controlLoopTaskHandle, 0
     );
   
-  // Initialize Serial and perform handshake
-  Serial.begin(115200);
-  while (serialBridge.performHandshake() == false)
-  {
-    digitalWrite(LED_ERROR_PIN, HIGH);
-    digitalWrite(LED_WARNING_PIN, LOW);
-    digitalWrite(LED_SUCCESS_PIN, LOW);
-    Serial.println("<NO_CONNECTION_TRYING_AGAIN>");
-    delay(2000);
-    digitalWrite(LED_ERROR_PIN, LOW);
-  }
-  Serial.println("<SYSTEM_READY>");
-
   // Create tasks for control loop and serial bridge
   xTaskCreatePinnedToCore(
       serialBridgeTask, "CommTask", 4096, NULL, 1, &serialBridgeTaskHandle, 1
