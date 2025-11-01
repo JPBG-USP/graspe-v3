@@ -1,5 +1,5 @@
 #include "SerialBridge.h"
-#include <GraspeGPIO.h>
+#include <Graspe.h>
 
 
 SerialBridge::SerialBridge(HardwareSerial& serialPort, unsigned long handshakeTimeoutMs)

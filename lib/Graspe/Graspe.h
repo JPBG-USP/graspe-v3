@@ -44,4 +44,11 @@ namespace GraspeGPIO {
     };
 }
 
+namespace Graspe{
+    struct RobotState {
+        float jointSetpoint[4];
+        float jointPosition[4];
+    };
+}
+
 #endif // _GRASPE_GPIO_H_
