@@ -244,3 +244,37 @@ void SerialBridge::sendMessage(const String& msg){
     String formated_msg = "<" + msg + ">";
     serial.println(formated_msg);
 }
+
+/**
+ * @brief Sends the current positions of all manipulator joints over the serial interface.
+ * 
+ * This function constructs a message containing the positions of all four joints
+ * and sends it in the format: "<POSALL q1 q2 q3 q4>".
+ * 
+ * @param q1 Position of joint 1.
+ * @param q2 Position of joint 2.
+ * @param q3 Position of joint 3.
+ * @param q4 Position of joint 4.
+ * @return true if the message was sent successfully.
+ */
+bool SerialBridge::sendFeedbackPositions(float q1, float q2, float q3, float q4){
+    String feedback_msg = "POSALL " + String(q1) + " " + String(q2) + " " + String(q3) + " " + String(q4);
+    sendMessage(feedback_msg);
+    return true;
+}
+
+/**
+ * @brief Sends the position of a single joint over the serial interface.
+ * 
+ * This function constructs a message containing the position of a specified joint
+ * and sends it in the format: "<POSQ<joint_index> position>".
+ * 
+ * @param joint_idx Index of the joint.
+ * @param pos Position of the joint.
+ * @return true if the message was sent successfully.
+ */
+bool SerialBridge::sendJointPosition(uint8_t joint_idx, float pos){
+    String feedback_msg = "POSQ" + String(joint_idx) + " " + String(pos);
+    sendMessage(feedback_msg);
+    return true;
+}
