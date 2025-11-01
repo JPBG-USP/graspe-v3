@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Graspe.h>
 #include <SerialBridge.h>
+#include <MotorEncoder.h>
 
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
 #define CONTROL_LOOP_DELAY_MS 20      // 50 hz control loop
@@ -18,7 +19,11 @@ Graspe::RobotState currentRobotState;
 void controlLoopTask(void * parameter) {
 
   // TODO: Add Motor Control Initialization Here
-  // TODO: Add Motor Encoder Initialization Here
+  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
+  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
+
   // TODO: Implement the controler to move to the startposition of the manipulator
 
   float sp[4], pos[4];
@@ -28,7 +33,18 @@ void controlLoopTask(void * parameter) {
   for(;;) {
     xSemaphoreTake(stateMutex, portMAX_DELAY);
       memcpy(sp, currentRobotState.jointSetpoint, sizeof(sp));
-      memcpy(pos, currentRobotState.jointPosition, sizeof(pos));
+    xSemaphoreGive(stateMutex);
+
+    // Read current positions from encoders
+    pos[0] = m1_encoder.getFilteredAngle();
+    pos[1] = m2_encoder.getFilteredAngle();
+    pos[2] = m3_encoder.getFilteredAngle();
+    pos[3] = m4_encoder.getFilteredAngle();
+
+    xSemaphoreTake(stateMutex, portMAX_DELAY);
+      for (int i = 0; i < 4; i++) {
+          currentRobotState.jointPosition[i] = pos[i];
+      }
     xSemaphoreGive(stateMutex);
 
     /*     TODO     */
@@ -81,13 +97,17 @@ void serialBridgeTask(void * parameter) {
       xSemaphoreTake(stateMutex, portMAX_DELAY);
         for (int i = 0; i < 4; i++) {
           currentRobotState.jointSetpoint[i] = receivedSetpoint[i];
-          currentPosition[i] = currentRobotState.jointPosition[i];
         }
-      xSemaphoreGive(stateMutex);
-
-      // TODO: Send back current joint positions (currentPosition)
-
+      xSemaphoreGive(stateMutex);  
     }
+    xSemaphoreTake(stateMutex, portMAX_DELAY);
+      serialBridge.sendFeedbackPositions(
+          currentRobotState.jointPosition[0],
+          currentRobotState.jointPosition[1],
+          currentRobotState.jointPosition[2],
+          currentRobotState.jointPosition[3]
+      );
+    xSemaphoreGive(stateMutex);
     vTaskDelayUntil(&lastWakeTime, dt);
   }
 }
