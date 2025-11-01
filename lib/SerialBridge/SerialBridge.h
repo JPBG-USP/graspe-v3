@@ -55,6 +55,8 @@ public:
     bool performHandshake();
     SerialBridgeCommands::Command readCommand();
     bool sendCommandAck(SerialBridgeCommands::Command cmd);
+    bool sendFeedbackPositions(float q1, float q2, float q3, float q4);
+    bool sendJointPosition(uint8_t joint_idx, float pos);
 
 };
 
