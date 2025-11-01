@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <GraspeGPIO.h>
+#include <Graspe.h>
 #include <SerialBridge.h>
 
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
@@ -11,15 +11,29 @@
 TaskHandle_t controlLoopTaskHandle;
 TaskHandle_t serialBridgeTaskHandle;
 
-SerialBridge serialBridge(Serial, HANDSHAKE_TIMEOUT_MS); 
+SerialBridge serialBridge(Serial, HANDSHAKE_TIMEOUT_MS);
+SemaphoreHandle_t stateMutex;
+Graspe::RobotState currentRobotState;
 
 void controlLoopTask(void * parameter) {
+
+  // TODO: Add Motor Control Initialization Here
+  // TODO: Add Motor Encoder Initialization Here
+  // TODO: Implement the controler to move to the startposition of the manipulator
+
+  float sp[4], pos[4];
+
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(CONTROL_LOOP_DELAY_MS);
-
   for(;;) {
+    xSemaphoreTake(stateMutex, portMAX_DELAY);
+      memcpy(sp, currentRobotState.jointSetpoint, sizeof(sp));
+      memcpy(pos, currentRobotState.jointPosition, sizeof(pos));
+    xSemaphoreGive(stateMutex);
+
     /*     TODO     */
     /* CONTROL LOOP */
+    
     vTaskDelayUntil(&lastWakeTime, dt);
   }
 }
@@ -38,6 +52,9 @@ void serialBridgeTask(void * parameter) {
   }
   Serial.println("<SYSTEM_READY>");
 
+  float receivedSetpoint[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // TODO: Add initialization based on current state
+  float currentPosition[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
   // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(SERIAL_LOOP_DELAY_MS);
@@ -45,9 +62,31 @@ void serialBridgeTask(void * parameter) {
   for(;;) {
     SerialBridgeCommands::Command command = serialBridge.readCommand();
     if (command.type != SerialBridgeCommands::NO_COMMAND) {
-      /*          TODO            */
-      /* UPDATE COMMAND VARIABLES */
       serialBridge.sendCommandAck(command);
+      
+      // Parse received command<
+      if (command.type == SerialBridgeCommands::SET_JOINT_POSITION) {
+        uint8_t idx = command.data.joint.joint_idx;
+        if (idx < 4) {
+          receivedSetpoint[idx] = command.data.joint.pos;
+        }
+      } else if (command.type == SerialBridgeCommands::SET_ALL_JOINT_POSITIONS) {
+        receivedSetpoint[0] = command.data.manipulator.q1;
+        receivedSetpoint[1] = command.data.manipulator.q2;
+        receivedSetpoint[2] = command.data.manipulator.q3;
+        receivedSetpoint[3] = command.data.manipulator.q4;
+      }
+
+      // Update desired setpoints based on received command
+      xSemaphoreTake(stateMutex, portMAX_DELAY);
+        for (int i = 0; i < 4; i++) {
+          currentRobotState.jointSetpoint[i] = receivedSetpoint[i];
+          currentPosition[i] = currentRobotState.jointPosition[i];
+        }
+      xSemaphoreGive(stateMutex);
+
+      // TODO: Send back current joint positions (currentPosition)
+
     }
     vTaskDelayUntil(&lastWakeTime, dt);
   }
@@ -55,6 +94,21 @@ void serialBridgeTask(void * parameter) {
 
 void setup() {
   GraspeGPIO::initGPIO();
+
+  // Create mutex for command access
+  stateMutex = xSemaphoreCreateMutex();
+  if (stateMutex == NULL) {
+    Serial.println("<CRITICAL_FAILURE>");
+    Serial.println("<ERROR_CREATING_MUTEX>");
+    for (int i = 0; i < 10; i++)
+    {
+      GraspeGPIO::indicateStatus(!digitalRead(LED_ERROR_PIN), false, false);
+      delay(500);
+    }
+    Serial.println("<SYSTEM_RESTARTING>");
+    Serial.flush();
+    ESP.restart();
+  }
   
   // Create control loop task pinned to core 0, start immediately
   xTaskCreatePinnedToCore(
