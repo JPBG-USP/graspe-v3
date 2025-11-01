@@ -2,7 +2,7 @@
 #define _SERIAL_BRIDGE_H_
 
 #include <Arduino.h>
-#include <GraspeGPIO.h>
+#include <Graspe.h>
 
 namespace SerialBridgeCommands
 {

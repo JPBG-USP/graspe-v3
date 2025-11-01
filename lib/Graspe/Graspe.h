@@ -32,6 +32,23 @@ namespace GraspeGPIO {
         pinMode(LED_WARNING_PIN, OUTPUT);
         pinMode(LED_SUCCESS_PIN, OUTPUT);
     };
+
+    inline void indicateStatus(bool error, bool warning, bool success){
+        digitalWrite(LED_ERROR_PIN, error ? HIGH : LOW);
+        digitalWrite(LED_WARNING_PIN, warning ? HIGH : LOW);
+        digitalWrite(LED_SUCCESS_PIN, success ? HIGH : LOW);
+    };
+
+    inline const char* getVersion() {
+        return GRASPE_GPIO_VERSION;
+    };
+}
+
+namespace Graspe{
+    struct RobotState {
+        float jointSetpoint[4];
+        float jointPosition[4];
+    };
 }
 
 #endif // _GRASPE_GPIO_H_
