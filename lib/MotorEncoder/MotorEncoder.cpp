@@ -7,12 +7,11 @@
  * @param pos_end The ADC value corresponding to PI radians
  * @param std The standard deviation of the measurement noise for the Kalman filter
  * @param Q The process noise covariance for the Kalman filter
- * @param x_init The initial estimated angle for the Kalman filter
  * @param P_init The initial estimation error covariance for the Kalman filter
  */
-MotorEncoder::MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float std, float Q, float x_init, float P_init)
+MotorEncoder::MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float std, float Q, float P_init)
     : _potPin(potPin), _pos_init(pos_init), _pos_end(pos_end),
-      _std(std), _r(std*std), _q(Q), _x(x_init), _p(P_init)
+      _std(std), _r(std*std), _q(Q), _x(0.0), _p(P_init)
 {
     pinMode(_potPin, INPUT);
 }
@@ -63,11 +62,19 @@ float MotorEncoder::getAngle() const {
  * @return float The filtered angle in radians
  */
 float MotorEncoder::getFilteredAngle() {
+    float z = getAngle();
+    
+    // Initialize Kalman
+    if (!_initialized)
+    {
+        _x = z;
+        _initialized = true;
+    }
+
     // Prediction update
     _p = _p + _q;
 
     // Measurement update
-    float z = getAngle();
     float k = _p / (_p + _r);
     _x = _x + k * (z - _x);
     _p = (1 - k) * _p;

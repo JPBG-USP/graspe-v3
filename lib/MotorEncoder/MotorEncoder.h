@@ -19,8 +19,11 @@ private:
     float _p;
     float _q;
 
+    // Generic
+    bool _initialized;
+
 public:
-    MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float std, float Q, float x_init, float P_init);
+    MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float std, float Q, float P_init);
     uint16_t readPot() const;
     float getAngle() const;
     float getFilteredAngle();

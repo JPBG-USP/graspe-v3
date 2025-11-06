@@ -19,10 +19,10 @@ Graspe::RobotState currentRobotState;
 void controlLoopTask(void * parameter) {
 
   // TODO: Add Motor Control Initialization Here
-  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
-  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
-  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 0.0, 1e-3);
+  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
+  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
 
   // TODO: Implement the controler to move to the startposition of the manipulator
 
