@@ -14,3 +14,9 @@ This is the third version of Grasp-e, soon more information will be available.
 
 We also developed a Python package that includes a graphical interface to connect with the robot, simulation tools with control modules, real robot data analysis, and more.
 You can learn more about it [here](./graspe_py/README.md) 
+
+## License
+This project is licensed under the **Business Source License 1.1 (BSL 1.1)**.  
+You may use, modify, and distribute this project for personal, academic, and research purposes.  
+Commercial use requires a separate license agreement with the author.  
+For inquiries, contact with the authors.

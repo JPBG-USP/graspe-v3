@@ -1,0 +1,48 @@
+Business Source License 1.1
+
+Licensor: The Grasp-e Authors
+Licensed Work: Grasp-e – Robotic Manipulator Control Framework
+License: Business Source License 1.1
+Change Date: 2028-11-06
+Change License: GNU General Public License v3.0 (or any later version)
+
+1. Grant of Rights
+
+The Licensor grants you the right to copy, modify, create derivative works, redistribute, and make non-production use of the Licensed Work, subject to the conditions below.
+
+The rights granted above do not include the right to use the Licensed Work for a Commercial Purpose.
+For clarity, “Non-Production Use” includes personal projects, research, testing, educational activities, and academic work.
+
+2. Commercial Use
+
+You may not use the Licensed Work for Commercial Purposes without obtaining a separate commercial license or royalty agreement from the Licensor.
+
+A “Commercial Purpose” means any use of the Licensed Work:
+- in connection with a business or for-profit activity;
+- that generates revenue directly or indirectly; or
+- that provides services, products, or research results to a third party for compensation.
+
+Commercial licensing inquiries should be directed to:
+📧 joaogarcia@email.com
+
+3. Redistribution
+
+If you distribute or publish the Licensed Work (or any part of it), you must:
+1. Include this license file and retain all copyright notices;
+2. State any modifications clearly;
+3. Ensure recipients are aware of this license and its restrictions.
+
+4. Change Date and Change License
+
+On or after the Change Date specified above, this License will automatically convert to the Change License identified above (GNU GPL v3.0 or later), and the Licensed Work will then be governed by that license.
+
+5. Disclaimer of Warranty
+
+THE LICENSED WORK IS PROVIDED “AS IS,” WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, OR NON-INFRINGEMENT.
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT, OR OTHERWISE, ARISING FROM OR IN CONNECTION WITH THE LICENSED WORK OR THE USE OF THE LICENSED WORK.
+
+6. Attribution
+
+Any public use or publication of results derived from this software must include acknowledgment of the original authors:
+
+“This work utilizes the Grasp-e framework, developed by João Pedro Baltieca Garcia.”
