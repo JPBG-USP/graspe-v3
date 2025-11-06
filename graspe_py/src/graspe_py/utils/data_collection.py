@@ -3,7 +3,7 @@ import csv
 import time
 import argparse
 from datetime import datetime
-from graspe_py.comms.serial_link import SerialLink
+from graspe_py.comms.serialBridge import SerialBridge
 
 # Default: current working directory where the script is executed
 DEFAULT_DATA_FOLDER = os.getcwd()
@@ -34,10 +34,20 @@ parser.add_argument(
     help="Number of samples before saving to disk (default: 50)"
 )
 
+parser.add_argument(
+    "--port",
+    type=str,
+    default="/dev/ttyUSB0",
+    help="Serial port to connect to"
+)
+
 args = parser.parse_args()
 dir_path = args.dir_path
 file_name = args.file_name
+if not file_name.endswith(".csv"):
+    file_name += ".csv"
 flush_interval = args.flush_interval
+serial_port = args.port
 
 # Create directory if it doesn’t exist
 os.makedirs(dir_path, exist_ok=True)
@@ -53,14 +63,14 @@ print(f"[INFO] File initialized at: {path_to_file}")
     Serial communication setup
 """
 print("[INFO] Performing handshake with ESP32...")
-serial_bridge = SerialLink()
+serial_bridge = SerialBridge(serial_port)
 
 attempts = 0
-while not serial_bridge.handshake():
+while not serial_bridge.handshake(timeout=3.0):
     attempts += 1
     print(f"[WARN] Failed to handshake... trying again (attempt #{attempts})")
     time.sleep(1)
-print("[INFO] Handshake successful ✅")
+print("[INFO] Handshake successful")
 
 """
     Data collection loop
@@ -71,18 +81,19 @@ total_samples = 0
 
 try:
     while True:
-        valor = serial_bridge.obter_posicao_motor()
-        timestamp = time.time()
-        dados.append([timestamp, *valor])
+        data = serial_bridge.get_joints_position()
+        if data:
+            timestamp = time.time()
+            dados.append([timestamp, *data])
 
-        # Save periodically
-        if len(dados) >= flush_interval:
-            with open(path_to_file, mode="a", newline='', encoding="utf-8") as file:
-                writer = csv.writer(file)
-                writer.writerows(dados)
-            total_samples += len(dados)
-            print(f"[INFO] Saved {len(dados)} samples to disk. Total so far: {total_samples}")
-            dados.clear()
+            # Save periodically
+            if len(dados) >= flush_interval:
+                with open(path_to_file, mode="a", newline='', encoding="utf-8") as file:
+                    writer = csv.writer(file)
+                    writer.writerows(dados)
+                total_samples += len(dados)
+                print(f"[INFO] Saved {len(dados)} samples to disk. Total so far: {total_samples}")
+                dados.clear()
 
 except KeyboardInterrupt:
     print("\n[INFO] Interruption detected! Saving remaining data...")
