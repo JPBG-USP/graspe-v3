@@ -36,10 +36,16 @@ void controlLoopTask(void * parameter) {
     xSemaphoreGive(stateMutex);
 
     // Read current positions from encoders
-    pos[0] = m1_encoder.getFilteredAngle();
-    pos[1] = m2_encoder.getFilteredAngle();
-    pos[2] = m3_encoder.getFilteredAngle();
-    pos[3] = m4_encoder.getFilteredAngle();
+    // pos[0] = m1_encoder.getFilteredAngle();
+    // pos[1] = m2_encoder.getFilteredAngle();
+    // pos[2] = m3_encoder.getFilteredAngle();
+    // pos[3] = m4_encoder.getFilteredAngle();
+
+    pos[0] = (float)(m1_encoder.readPot());
+    pos[1] = (float)(m2_encoder.readPot());
+    pos[2] = (float)(m3_encoder.readPot());
+    pos[3] = (float)(m4_encoder.readPot());
+    
 
     xSemaphoreTake(stateMutex, portMAX_DELAY);
       for (int i = 0; i < 4; i++) {
