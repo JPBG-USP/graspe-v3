@@ -9,11 +9,12 @@
  * @param Q The process noise covariance for the Kalman filter
  * @param P_init The initial estimation error covariance for the Kalman filter
  */
-MotorEncoder::MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float std, float Q, float P_init)
-    : _potPin(potPin), _pos_init(pos_init), _pos_end(pos_end),
+MotorEncoder::MotorEncoder(uint8_t potPin, uint16_t pos_init, uint16_t pos_end, float angle_init, float angle_end, float std, float Q, float P_init)
+    : _potPin(potPin), _pos_init(pos_init), _pos_end(pos_end), _angle_init(angle_init), _angle_end(angle_end),
       _std(std), _r(std*std), _q(Q), _x(0.0), _p(P_init)
 {
     pinMode(_potPin, INPUT);
+    _angle_difference = _angle_end - _angle_init;
 }
 
 /**
@@ -38,19 +39,19 @@ float MotorEncoder::getAngle() const {
 
     if (_pos_init < _pos_end) {
         if (pot_read < _pos_init) {
-            angle = 0.0f;
+            angle =_angle_init;
         } else if (pot_read > _pos_end) {
-            angle = PI;
+            angle = _angle_end;
         } else {
-            angle = (float)(pot_read - _pos_init) / (float)(_pos_end - _pos_init) * PI;
+            angle = (float)(pot_read - _pos_init) / (float)(_pos_end - _pos_init) * _angle_difference;
         }
     } else {
         if (pot_read > _pos_init) {
-            angle = 0.0f;
+            angle = _angle_init;
         } else if (pot_read < _pos_end) {
-            angle = PI;
+            angle = _angle_end;
         } else {
-            angle = (float)(_pos_init - pot_read) / (float)(_pos_init - _pos_end) * PI;
+            angle = (float)(_pos_init - pot_read) / (float)(_pos_init - _pos_end) * (-_angle_difference);
         }
     }
 
