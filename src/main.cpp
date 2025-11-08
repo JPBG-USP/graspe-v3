@@ -19,10 +19,10 @@ Graspe::RobotState currentRobotState;
 void controlLoopTask(void * parameter) {
 
   // TODO: Add Motor Control Initialization Here
-  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3934.16, 269.249, 0, PI, 13.552, 5.0, 1e-3);
-  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 3934.16, 269.249, 0, PI, 13.552, 5.0, 1e-3);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 3934.16, 269.249, 0, PI, 13.552, 5.0, 1e-3);
-  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 3934.16, 269.249, 0, PI, 13.552, 5.0, 1e-3);
+  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, -PI/2, PI/2, 0.00667, 5.0, 1e-3);
+  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.00885336, 5.0, 1e-3);
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 321, 479, 0, PI/2, 0.01, 5.0, 1e-3);      // TODO: Find better Kalman Parameter
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 317, 3615, -PI/2, PI/2, 0.01, 5.0, 1e-3); // TODO: Find better Kalman Parameter
 
   // TODO: Implement the controler to move to the startposition of the manipulator
 
@@ -36,15 +36,16 @@ void controlLoopTask(void * parameter) {
     xSemaphoreGive(stateMutex);
 
     // Read current positions from encoders
+    // USE ONLY WHEN SETUP KALMAN VARIABLES
     // pos[0] = m1_encoder.getFilteredAngle();
     // pos[1] = m2_encoder.getFilteredAngle();
     // pos[2] = m3_encoder.getFilteredAngle();
     // pos[3] = m4_encoder.getFilteredAngle();
 
-    pos[0] = (float)(m1_encoder.readPot());
-    pos[1] = (float)(m2_encoder.readPot());
-    pos[2] = (float)(m3_encoder.readPot());
-    pos[3] = (float)(m4_encoder.readPot());
+    pos[0] = m1_encoder.getAngle();
+    pos[1] = m2_encoder.getAngle();
+    pos[2] = m3_encoder.getAngle();
+    pos[3] = m4_encoder.getAngle();
     
 
     xSemaphoreTake(stateMutex, portMAX_DELAY);
