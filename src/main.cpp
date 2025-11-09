@@ -2,6 +2,8 @@
 #include <Graspe.h>
 #include <SerialBridge.h>
 #include <MotorEncoder.h>
+#include <MotorController.h>
+#include <PIDcontroller.h>
 
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
 #define CONTROL_LOOP_DELAY_MS 20      // 50 hz control loop
@@ -18,15 +20,22 @@ Graspe::RobotState currentRobotState;
 
 void controlLoopTask(void * parameter) {
 
-  // TODO: Add Motor Control Initialization Here
+  MotorController m1_driver(MOTOR1_PIN_A, MOTOR1_PIN_B);
+  MotorController m2_driver(MOTOR2_PIN_A, MOTOR2_PIN_B);
+  MotorController m3_driver(MOTOR3_PIN_A, MOTOR3_PIN_B);
+  MotorController m4_driver(MOTOR4_PIN_A, MOTOR4_PIN_B);
+
   MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, -PI/2, PI/2, 0.00667, 5.0, 1e-3);
   MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.00885336, 5.0, 1e-3);
   MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 321, 479, 0, PI/2, 0.01, 5.0, 1e-3);      // TODO: Find better Kalman Parameter
   MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 317, 3615, -PI/2, PI/2, 0.01, 5.0, 1e-3); // TODO: Find better Kalman Parameter
 
-  // TODO: Implement the controler to move to the startposition of the manipulator
+  PIDcontroller m1_controller(0.5, 0.0, 0.0, CONTROL_LOOP_DELAY_MS);
+  PIDcontroller m2_controller(0.0, 0.0, 0.0, CONTROL_LOOP_DELAY_MS);
+  PIDcontroller m3_controller(0.0, 0.0, 0.0, CONTROL_LOOP_DELAY_MS);
+  PIDcontroller m4_controller(0.0, 0.0, 0.0, CONTROL_LOOP_DELAY_MS);
 
-  float sp[4], pos[4];
+  float sp[4], pos[4], u[4];
 
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(CONTROL_LOOP_DELAY_MS);
@@ -54,8 +63,15 @@ void controlLoopTask(void * parameter) {
       }
     xSemaphoreGive(stateMutex);
 
-    /*     TODO     */
-    /* CONTROL LOOP */
+    u[0] = 255 * m1_controller.action(sp[0] - pos[0]);
+    u[1] = 255 * m1_controller.action(sp[1] - pos[1]);
+    u[2] = 255 * m1_controller.action(sp[2] - pos[2]);
+    u[3] = 255 * m1_controller.action(sp[3] - pos[3]);
+
+    m1_driver.action(u[0]);
+    m2_driver.action(u[1]);
+    m3_driver.action(u[2]);
+    m4_driver.action(u[3]);
     
     vTaskDelayUntil(&lastWakeTime, dt);
   }
