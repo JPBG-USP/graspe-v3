@@ -10,8 +10,8 @@
 #define LED_SUCCESS_PIN 13
 
 // Motor control pins
-#define MOTOR1_PIN_A 32
-#define MOTOR1_PIN_B 33
+#define MOTOR1_PIN_A 33
+#define MOTOR1_PIN_B 32
 #define MOTOR2_PIN_A 26
 #define MOTOR2_PIN_B 25
 #define MOTOR3_PIN_A 4
