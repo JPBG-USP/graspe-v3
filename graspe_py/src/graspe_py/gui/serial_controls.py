@@ -40,7 +40,7 @@ class SerialControlFrame(tk.LabelFrame):
 
     def enviar_todas(self):
         q_rad = np.deg2rad(self.q_atual_deg)
-        msg = f"SETQ {q_rad[0]:.3f} {q_rad[1]:.3f} {q_rad[2]:.3f} {q_rad[3]:.3f}"
+        msg = f"SETALLQ {q_rad[0]:.3f} {q_rad[1]:.3f} {q_rad[2]:.3f} {q_rad[3]:.3f}"
         self.link.send(msg)
 
     def enviar_uma(self, i):
