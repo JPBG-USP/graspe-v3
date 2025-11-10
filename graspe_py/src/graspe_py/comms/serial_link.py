@@ -44,70 +44,48 @@ class SerialLink:
     def is_connected(self):
         return self.serial and self.serial.is_open
 
-    def handshake(self, timeout=3.0) -> bool:
-        """
-        Performs handshake with ESP32:
-            Sends <HELLO> and waits for <HELLO_ACK>.
-        Returns:
-            bool: True if handshake succeeds, False otherwise.
-        """
-        print("[SerialBridge] Starting handshake...")
-        self.serial.reset_input_buffer()
-        self.serial.reset_output_buffer()
-
-        self.serial.write(b"<HELLO>")
-        self.serial.flush()
-
-        start_time = time.time()
-
-        while time.time() - start_time < timeout:
-            msg = self.read_message(timeout=timeout)
-            if msg == "HELLO_ACK":
-                print("[SerialBridge] Handshake successful.")
-                return True
-            elif msg:
-                print(f"[SerialBridge] Received: {msg}")
-
-        print("[SerialBridge] Handshake failed (timeout).")
+    def handshake(self, retries=3, wait_time=0.5):
+        """Envia <HELLO> e aguarda <HELLO_ACK>."""
+        for i in range(retries):
+            self.send("HELLO")
+            start = time.time()
+            while time.time() - start < wait_time:
+                msg = self.get_message(timeout=0.1)
+                if msg == "HELLO_ACK":
+                    print("[SerialLink] Handshake bem-sucedido")
+                    return True
+            print(f"[SerialLink] Tentativa {i+1}/{retries} falhou.")
+        print("[SerialLink] Handshake falhou após tentativas.")
         return False
 
     # ---------- Loop de leitura ----------
-    def read_message(self, timeout=None):
-        """
-        Reads a serial message in the format:
-            <msg>
-        Returns:
-            str: The message content between '<' and '>', or None if timeout occurs.
-        """
-        start_time = time.time()
-        buffer = bytearray()
+    def _read_loop(self):
+        print("[SerialLink] Thread de leitura iniciada")
+        while self._running and self.serial and self.serial.is_open:
+            try:
+                data = self.serial.read(64)
+                if data:
+                    for b in data:
+                        self._rx_buffer.append(b)
+                        if b == ETX[0]:
+                            start_idx = self._rx_buffer.find(STX)
+                            if start_idx != -1:
+                                frame = self._rx_buffer[start_idx+1:-1]
+                                msg = frame.decode(errors="ignore").strip()
+                                if self._rx_queue.full():
+                                    self._rx_queue.get_nowait() 
+                                self._rx_queue.put_nowait(msg)
 
-        while True:
-            if self.serial.in_waiting > 0:
-                byte = self.serial.read(1)
-
-                # Detect message start
-                if byte == STX:
-                    buffer = bytearray()
-                    # Read until ETX
-                    while True:
-                        if self.serial.in_waiting > 0:
-                            b = self.serial.read(1)
-                            if b == ETX:
-                                try:
-                                    msg = buffer.decode("utf-8").strip()
-                                    return msg
-                                except UnicodeDecodeError:
-                                    print("[SerialBridge] Decode error.")
-                                    return None
-                            else:
-                                buffer.extend(b)
-                        # Check timeout inside inner loop
-                        if timeout and (time.time() - start_time > timeout):
-                            return None
-
-            if timeout and (time.time() - start_time > timeout):
-                return None
+                            self._rx_buffer.clear()
+            except Exception as e:
+                print(f"[SerialLink] Erro na leitura: {e}")
+                time.sleep(0.1)
+        print("[SerialLink] Thread de leitura finalizada")
+    
+    def get_message(self, timeout=None):
+        try:
+            return self._rx_queue.get(timeout=timeout)
+        except queue.Empty:
             return None
         
     def send(self, msg: str):
@@ -132,9 +110,10 @@ class SerialLink:
         Returns:
             tuple[float, float, float, float]: The joint positions, or None if the format is invalid.
         """
-        msg: str = self.read_message(timeout=1)
+        msg: str = self.get_message(timeout=1)
         if not msg:
-            return None
+            print("not msg")
+            return None, None
 
         if msg.startswith("POSALL"):
             try:
@@ -144,6 +123,7 @@ class SerialLink:
                     return None
 
                 positions = tuple(float(x) for x in parts[1:])
+                print(positions)
                 return positions
 
             except ValueError as e:
