@@ -44,49 +44,70 @@ class SerialLink:
     def is_connected(self):
         return self.serial and self.serial.is_open
 
-    def handshake(self, retries=3, wait_time=0.5):
-        """Envia <HELLO> e aguarda <HELLO_ACK>."""
-        for i in range(retries):
-            self.send("HELLO")
-            start = time.time()
-            while time.time() - start < wait_time:
-                msg = self.get_message(timeout=0.1)
-                if msg == "HELLO_ACK":
-                    print("[SerialLink] Handshake bem-sucedido")
-                    return True
-            print(f"[SerialLink] Tentativa {i+1}/{retries} falhou.")
-        print("[SerialLink] Handshake falhou após tentativas.")
+    def handshake(self, timeout=3.0) -> bool:
+        """
+        Performs handshake with ESP32:
+            Sends <HELLO> and waits for <HELLO_ACK>.
+        Returns:
+            bool: True if handshake succeeds, False otherwise.
+        """
+        print("[SerialBridge] Starting handshake...")
+        self.serial.reset_input_buffer()
+        self.serial.reset_output_buffer()
+
+        self.serial.write(b"<HELLO>")
+        self.serial.flush()
+
+        start_time = time.time()
+
+        while time.time() - start_time < timeout:
+            msg = self.read_message(timeout=timeout)
+            if msg == "HELLO_ACK":
+                print("[SerialBridge] Handshake successful.")
+                return True
+            elif msg:
+                print(f"[SerialBridge] Received: {msg}")
+
+        print("[SerialBridge] Handshake failed (timeout).")
         return False
 
     # ---------- Loop de leitura ----------
-    def _read_loop(self):
-        print("[SerialLink] Thread de leitura iniciada")
-        while self._running and self.serial and self.serial.is_open:
-            try:
-                data = self.serial.read(64)
-                if data:
-                    for b in data:
-                        self._rx_buffer.append(b)
-                        if b == ETX[0]:
-                            start_idx = self._rx_buffer.find(STX)
-                            if start_idx != -1:
-                                frame = self._rx_buffer[start_idx+1:-1]
-                                msg = frame.decode(errors="ignore").strip()
-                                if self._rx_queue.full():
-                                    self._rx_queue.get_nowait() 
-                                self._rx_queue.put_nowait(msg)
+    def read_message(self, timeout=None):
+        """
+        Reads a serial message in the format:
+            <msg>
+        Returns:
+            str: The message content between '<' and '>', or None if timeout occurs.
+        """
+        start_time = time.time()
+        buffer = bytearray()
 
-                            self._rx_buffer.clear()
-            except Exception as e:
-                print(f"[SerialLink] Erro na leitura: {e}")
-                time.sleep(0.1)
-        print("[SerialLink] Thread de leitura finalizada")
+        while True:
+            if self.serial.in_waiting > 0:
+                byte = self.serial.read(1)
 
-    # ---------- Recepção ----------
-    def get_message(self, timeout=None):
-        try:
-            return self._rx_queue.get(timeout=timeout)
-        except queue.Empty:
+                # Detect message start
+                if byte == STX:
+                    buffer = bytearray()
+                    # Read until ETX
+                    while True:
+                        if self.serial.in_waiting > 0:
+                            b = self.serial.read(1)
+                            if b == ETX:
+                                try:
+                                    msg = buffer.decode("utf-8").strip()
+                                    return msg
+                                except UnicodeDecodeError:
+                                    print("[SerialBridge] Decode error.")
+                                    return None
+                            else:
+                                buffer.extend(b)
+                        # Check timeout inside inner loop
+                        if timeout and (time.time() - start_time > timeout):
+                            return None
+
+            if timeout and (time.time() - start_time > timeout):
+                return None
             return None
         
     def send(self, msg: str):
@@ -106,37 +127,27 @@ class SerialLink:
     # ---------- Função para obter a posição do motor 2 ----------
     def obter_posicao_motor(self):
         """
-        Lê mensagens no formato <posqXVALOR> e retorna (X, VALOR)
-        Exemplo: "<posq2 123.456>" -> (2, 123.456)
+        Reads a message in the format:
+            <POSALL q1 q2 q3 q4>
+        Returns:
+            tuple[float, float, float, float]: The joint positions, or None if the format is invalid.
         """
-        msg: str = self.get_message(timeout=1)
+        msg: str = self.read_message(timeout=1)
         if not msg:
-            print("not msg")
-            return None, None
+            return None
 
-        # Exemplo esperado: <posq1 123.456>
-        if msg.startswith("posq"):
+        if msg.startswith("POSALL"):
             try:
-                # Extrai o número do motor logo após 'posq'
-                if msg[4].isdigit():
-                    motor_index = int(msg[4])
-                else:
-                    print("Fudeu, não é digito")
+                parts = msg.split()
+                if len(parts) != 5:
+                    print(f"[SerialBridge] Unexpected message format: {msg}")
+                    return None
 
-                # Extrai o valor numérico restante
-                valor_str = msg[5:]
-                print(msg)
-                print(valor_str)
-                motor_position = float(valor_str)
+                positions = tuple(float(x) for x in parts[1:])
+                return positions
 
-                return motor_index, motor_position
-
-            except Exception as e:
-                print(f"[SerialLink] Erro ao interpretar mensagem de posição: {e}")
-
-        elif msg == "<ACK>":
-            print("[SerialLink] Recebido ACK da ESP32")
-
+            except ValueError as e:
+                print(f"[SerialBridge] Value conversion error: {e}")
+                return None
         else:
-            print("[SerialLink] Mensagem não começa com <posq")
-        return None, None
+            return None
