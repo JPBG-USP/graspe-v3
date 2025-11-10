@@ -61,7 +61,9 @@ def update_real_robot():
         if  q_real_temp is None:
             pass
         else:
-            q_real_deg =  np.rad2deg(q_real_temp)
+            q_real_temp_deg = np.rad2deg(q_real_temp)
+            q_real_deg[0] = q_real_temp_deg[0]
+            q_real_deg[1] = q_real_temp_deg[1]
             draw_robot(np.deg2rad(q_real_deg), ax_3d_1, canvas_3d_1)
 
     # recall again this function after 40ms

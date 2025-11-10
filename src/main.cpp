@@ -37,6 +37,9 @@ void controlLoopTask(void * parameter) {
 
   float sp[4], pos[4], u[4];
 
+  // TODO: Do the startup control to set the manipulator on start position
+  sp[0] = PI/2;
+
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(CONTROL_LOOP_DELAY_MS);
   for(;;) {
@@ -47,7 +50,7 @@ void controlLoopTask(void * parameter) {
     // Read current positions from encoders
     pos[0] = m1_encoder.getFilteredAngle();
     pos[1] = m2_encoder.getFilteredAngle();
-    pos[2] = m3_encoder.getFilteredAngle();
+    pos[2] = m3_encoder.readPot();
     pos[3] = m4_encoder.getFilteredAngle();
 
     xSemaphoreTake(stateMutex, portMAX_DELAY);
@@ -94,8 +97,7 @@ void serialBridgeTask(void * parameter) {
   }
   Serial.println("<SYSTEM_READY>");
 
-  float receivedSetpoint[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // TODO: Add initialization based on current state
-  float currentPosition[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float receivedSetpoint[4] = {PI/2, 0.0f, 0.0f, 0.0f}; // TODO: Add initialization based on current state
 
   // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();
