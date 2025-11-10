@@ -25,9 +25,9 @@ void controlLoopTask(void * parameter) {
   MotorController m3_driver(MOTOR3_PIN_A, MOTOR3_PIN_B);
   MotorController m4_driver(MOTOR4_PIN_A, MOTOR4_PIN_B);
 
-  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, -PI/2, PI/2, 0.008743444454, 5.0e-3, 0.1);
+  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.008743444454, 5.0e-3, 0.1);
   MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.01083128044, 5.0e-3, 0.1);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 452, 1121, 0, -PI/2, 0.03925796262, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 452, 1121, 0, PI/2, 0.03925796262, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
   MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 378, 4049, -PI/2, PI/2, 0.1677506961, 5.0e-3, 0.1); // TODO: Find better Kalman Parameter
 
   PIDcontroller m1_controller(0.9, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
