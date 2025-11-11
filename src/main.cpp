@@ -27,7 +27,7 @@ void controlLoopTask(void * parameter) {
 
   MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.008743444454, 5.0e-3, 0.1);
   MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.01083128044, 5.0e-3, 0.1);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 452, 1121, 0, PI/2, 0.03925796262, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 434, 2885, PI/2, -PI/2, 0, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
   MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 378, 4049, -PI/2, PI/2, 0.1677506961, 5.0e-3, 0.1); // TODO: Find better Kalman Parameter
 
   PIDcontroller m1_controller(0.9, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
@@ -50,7 +50,7 @@ void controlLoopTask(void * parameter) {
     // Read current positions from encoders
     pos[0] = m1_encoder.getFilteredAngle();
     pos[1] = m2_encoder.getFilteredAngle();
-    pos[2] = m3_encoder.readPot();
+    pos[2] = m3_encoder.getFilteredAngle();
     pos[3] = m4_encoder.getFilteredAngle();
 
     xSemaphoreTake(stateMutex, portMAX_DELAY);
@@ -90,6 +90,7 @@ void serialBridgeTask(void * parameter) {
   while (serialBridge.performHandshake() == false)
   {
     GraspeGPIO::indicateStatus(true, false, false);
+    // Serial.println(ADRIANO_ASCII);
     Serial.println("<NO_CONNECTION_TRYING_AGAIN>");
     Serial.flush();
     vTaskDelay(pdMS_TO_TICKS(HANDSHAKE_RETRY_DELAY_MS));;
