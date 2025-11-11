@@ -21,6 +21,7 @@ class SerialLink:
         self._rx_buffer = bytearray()
         self._rx_queue = queue.Queue(maxsize=50)
         self._rx_thread = None
+        print("[WARNING] The Serial Link is DEPREACATED, soon will be removed and replaced by SerialBridge")
 
     # ---------- Conexão ----------
     def connect(self):
