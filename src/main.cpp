@@ -39,7 +39,6 @@ void controlLoopTask(void * parameter) {
   // TODO: Do the startup control to set the manipulator on start position
   
   Graspe::RobotState localRobotState;
-  float u[4] = {0};
 
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(CONTROL_LOOP_DELAY_MS);
@@ -69,15 +68,21 @@ void controlLoopTask(void * parameter) {
       e[i] = localRobotState.jointSetpoint[i] - localRobotState.jointPosition[i];
     }
 
-    u[0] = 255 * m1_controller.action(e[0]);
-    u[1] = 255 * m2_controller.action(e[1]);
-    u[2] = 255 * m3_controller.action(e[2]);
-    u[3] = 255 * m4_controller.action(e[3]);
+    float u[4] = {0};
+
+    if(localRobotState.motorPower){
+      u[0] = 255 * m1_controller.action(e[0]);
+      u[1] = 255 * m2_controller.action(e[1]);
+      u[2] = 255 * m3_controller.action(e[2]);
+      u[3] = 255 * m4_controller.action(e[3]);
+    }
 
     m1_driver.action(u[0]);
     m2_driver.action(u[1]);
     m3_driver.action(u[2]);
     m4_driver.action(u[3]);
+
+    Serial.println(localRobotState.motorPower);
 
     #if DEBUG_CODE
     Serial.print("Motor Action: ");
@@ -144,6 +149,9 @@ void serialBridgeTask(void * parameter) {
         localRobotState.controllerGains[joint_idx].Kp = command.data.controller.Kp;
         localRobotState.controllerGains[joint_idx].Kd = command.data.controller.Kd;
         localRobotState.controllerGains[joint_idx].Ki = command.data.controller.Ki;
+      }
+      if (command.type == SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE){
+        localRobotState.motorPower = command.data.motors_power.state;
       }
     }
     xSemaphoreTake(stateMutex, portMAX_DELAY);
