@@ -22,6 +22,7 @@
 void Graspe::updateRobotStateSerialLoop(RobotState &localRobotState, RobotState &globalRobotState){
 
     globalRobotState.updateController = localRobotState.updateController;
+    globalRobotState.motorPower = localRobotState.motorPower;
 
     // For each joint
     for (int i = 0; i < 4; i++)
@@ -58,6 +59,7 @@ void Graspe::updateRobotStateSerialLoop(RobotState &localRobotState, RobotState 
 void Graspe::updateRobotStateControlLoop(RobotState &localRobotState, RobotState &globalRobotState){
 
     localRobotState.updateController = globalRobotState.updateController;
+    localRobotState.motorPower = globalRobotState.motorPower;
 
     // For each joint
     for (int i = 0; i < 4; i++)
