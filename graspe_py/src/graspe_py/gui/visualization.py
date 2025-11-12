@@ -43,6 +43,7 @@ def draw_robot(q_rad, ax, canvas):
     ax.set_ylabel("Y [m]")
     ax.set_zlabel("Z [m]")
     ax.plot(xs, ys, zs, marker="o", lw=4, ms=7, c="purple")
+    ax.plot(xs[-1], ys[-1], 0, marker="o", lw=4, ms=7, c="red")
     ax.scatter([xs[-1]], [ys[-1]], [zs[-1]], c="r", s=40)
 
     alcance = np.sum(np.abs([1.672, 1.26, 1.26, 0.5]))*1e-1

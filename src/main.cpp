@@ -28,8 +28,8 @@ void controlLoopTask(void * parameter) {
 
   MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.008743444454, 5.0e-3, 0.1);
   MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.01083128044, 5.0e-3, 0.1);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
-  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.1677506961, 5.0e-3, 0.1); // TODO: Find better Kalman Parameter
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0.01077866635, 3.0e-3, 0.1);      // TODO: Find better Kalman Parameter
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.01090979542, 3.0e-3, 0.1); // TODO: Find better Kalman Parameter
 
   PIDcontroller m1_controller(0.9, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
   PIDcontroller m2_controller(1.2, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
