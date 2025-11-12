@@ -115,6 +115,8 @@ String SerialBridge::readMessage(){
  *   - Example: "SETQ1 45.0" sets joint 1 to position 45.0
  * - Full manipulator command: "SETALLQ <q1> <q2> <q3> <q4>"
  *   - Example: "SETALLQ 10.0 20.0 30.0 40.0" sets all four joints
+ * - Change Controller Gains: "SETGAINS <joint_index> <Kp> <Kd> <Ki>"
+ *   - Example: "SETGAINS 2 0.9 0.1 0.3"
  * 
  * @return SerialBridgeCommands::Command A struct representing the parsed command,
  *         including the command type and associated joint or manipulator positions.
@@ -124,7 +126,9 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
     String msg = readMessage();
 
     // If command is to set a single joint position
-    if(msg.startsWith("SETQ")){
+    if(msg.startsWith("SETQ"))
+    {
+        // <SETQX 0.1>
         cmd.type = SerialBridgeCommands::SET_JOINT_POSITION;
 
         // Extract joint index
@@ -148,7 +152,9 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
     }
 
     // If command is to set all joint positions
-    if (msg.startsWith("SETALLQ")) {
+    if (msg.startsWith("SETALLQ")) 
+    {
+        // <SETALLQ 0.4 0.5 0.6 0.7>
         cmd.type = SerialBridgeCommands::SET_ALL_JOINT_POSITIONS;
 
         float values[4] = {0};
@@ -191,6 +197,62 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
 
         return cmd;
     }
+
+    // Change controller gains
+    if (msg.startsWith("SETGAINS"))
+    {
+        // <SETGAINS 1 0.2 0.3 0.4>
+        cmd.type = SerialBridgeCommands::CHANGE_CONTROLLER_GAINS;
+
+        // Get joint idx
+        int start = msg.indexOf(' ') + 1;
+        int end = msg.indexOf(' ', start);
+
+        if (end == -1)
+        {
+            cmd.type = SerialBridgeCommands::NO_COMMAND;
+            return cmd;
+        }
+
+        String part = msg.substring(start, end);
+        cmd.data.controller.joint_idx = part.toInt();
+        start = end + 1;
+        
+        // Read gains
+        float gains[4] = {0};
+        bool valid = true;
+
+        for (int i = 0; i < 3; i++) {
+            int end = msg.indexOf(' ', start);
+            String part;
+
+            if (end == -1) {
+                part = msg.substring(start);
+                start = -1;
+            } else {
+                part = msg.substring(start, end);
+                start = end + 1;
+            }
+
+            if (part.length() == 0) {
+                valid = false;
+                break;
+            }
+
+            gains[i] = part.toFloat();
+        }
+
+        if (!valid) {
+            cmd.type = SerialBridgeCommands::NO_COMMAND;
+            return cmd;
+        }
+
+        cmd.data.controller.Kp = gains[0];
+        cmd.data.controller.Kd = gains[1];
+        cmd.data.controller.Ki = gains[2];
+        return cmd;
+    }
+
     cmd.type = SerialBridgeCommands::NO_COMMAND;
     return cmd;
 }
@@ -225,6 +287,9 @@ bool SerialBridge::sendCommandAck(SerialBridgeCommands::Command cmd){
                     + " " + String(cmd.data.manipulator.q3) + " " + String(cmd.data.manipulator.q4);
         sendMessage(ack_msg);
         return true;
+    case SerialBridgeCommands::CHANGE_CONTROLLER_GAINS:
+        ack_msg += "SETGAINS" + String(cmd.data.controller.joint_idx) + " " + String(cmd.data.controller.Kp)
+                    + " " + String(cmd.data.controller.Kd) + " " + String(cmd.data.controller.Ki);
     default:
         return false;;
     }
