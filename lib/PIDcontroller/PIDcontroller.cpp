@@ -31,6 +31,7 @@ float PIDcontroller::action(float error)
     // Compute derivative and integral
     float derivative = (error - e1) / _dt;
     integral += error * _dt;
+    integral = constrain(integral, -1.0, -1.0);
 
     // Compute PID output
     float u = _Kp * error + _Ki * integral + _Kd * derivative;
