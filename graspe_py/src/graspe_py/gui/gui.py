@@ -1,5 +1,55 @@
 import tkinter as tk
 
+def setup_window():
+
+    # Configuring main window
+    window = tk.Tk()
+    window.title("Grasp-e Operator")
+    window.geometry("1000x600")
+    window.configure(bg="purple")
+
+    main_paned = tk.PanedWindow(window, 
+        orient=tk.HORIZONTAL,
+        sashrelief="raised", 
+        bg="purple"
+    )
+    """ Main Panned Window, dividing robot to control"""
+
+    viz_paned = tk.PanedWindow(
+        orient=tk.VERTICAL,
+        sashrelief="raised",
+        background="purple"
+    )
+    """ Vizualization Panned Window """
+
+    main_paned.pack(fill="both", expand=True)
+    viz_paned.pack(fill="both", expand=True)
+
+    ctrl_frame = tk.Frame(
+        main_paned, bg="green", width=300, height=600
+    )
+    """ Control frame """
+
+    sim_robot_frame = tk.Frame(viz_paned,
+        bg="purple",
+        width=700,
+        height=300
+    )
+
+    real_robot_frame = tk.Frame(viz_paned,
+        bg="purple",
+        width=700,
+        height=300
+    )
+    viz_paned.add(sim_robot_frame)
+    viz_paned.add(real_robot_frame)
+
+    main_paned.add(viz_paned)
+    main_paned.add(ctrl_frame)
+    
+    return window, real_robot_frame, sim_robot_frame, ctrl_frame
+
+
 def criar_janela():
     janela = tk.Tk()
     janela.title("Simulação Tkinter")
@@ -17,6 +67,7 @@ def criar_janela():
     paned.add(frame_esquerda)
     paned.add(frame_direita)
 
+    print("[WARNING] The `criar_janela` funcition is DEPREACATED soon will be replaced by main_window()")
     return janela, frame_esquerda, frame_direita
 
 def sim_and_real_windows():
