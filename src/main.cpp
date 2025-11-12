@@ -27,13 +27,13 @@ void controlLoopTask(void * parameter) {
 
   MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.008743444454, 5.0e-3, 0.1);
   MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.01083128044, 5.0e-3, 0.1);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 434, 2885, PI/2, -PI/2, 0, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
-  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 378, 4049, -PI/2, PI/2, 0.1677506961, 5.0e-3, 0.1); // TODO: Find better Kalman Parameter
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.1677506961, 5.0e-3, 0.1); // TODO: Find better Kalman Parameter
 
   PIDcontroller m1_controller(0.9, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m2_controller(0.0, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m3_controller(0.0, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m4_controller(0.0, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m2_controller(1.2, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m3_controller(0.9, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m4_controller(0.7, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
 
   float sp[4], pos[4], u[4];
 
@@ -48,10 +48,15 @@ void controlLoopTask(void * parameter) {
     xSemaphoreGive(stateMutex); 
 
     // Read current positions from encoders
+    // pos[0] = m1_encoder.getFilteredAngle();
+    // pos[1] = m2_encoder.getFilteredAngle();
+    // pos[2] = m3_encoder.getFilteredAngle();
+    // pos[3] = m4_encoder.getFilteredAngle();
+
     pos[0] = m1_encoder.getFilteredAngle();
     pos[1] = m2_encoder.getFilteredAngle();
-    pos[2] = m3_encoder.getFilteredAngle();
-    pos[3] = m4_encoder.getFilteredAngle();
+    pos[2] = m3_encoder.getAngle();
+    pos[3] = m4_encoder.getAngle();
 
     xSemaphoreTake(stateMutex, portMAX_DELAY);
       for (int i = 0; i < 4; i++) {
@@ -60,25 +65,23 @@ void controlLoopTask(void * parameter) {
     xSemaphoreGive(stateMutex);
 
     u[0] = 255 * m1_controller.action(sp[0] - pos[0]);
-    // u[1] = 255 * m2_controller.action(sp[1] - pos[1]);
-    // u[2] = 255 * m3_controller.action(sp[2] - pos[2]);
-    // u[3] = 255 * m4_controller.action(sp[3] - pos[3]);
+    u[1] = 255 * m2_controller.action(sp[1] - pos[1]);
+    u[2] = 255 * m3_controller.action(sp[2] - pos[2]);
+    u[3] = 255 * m4_controller.action(sp[3] - pos[3]);
 
     m1_driver.action(u[0]);
-    // m2_driver.action(u[1]);
-    // m3_driver.action(u[2]);
-    // m4_driver.action(u[3]);
+    m2_driver.action(u[1]);
+    m3_driver.action(u[2]);
+    m4_driver.action(u[3]);
 
     // DEBUG CODE
     // Serial.print("Motor Action: ");
-    // Serial.print(u[0]);
+    // Serial.print(u[1]);
     // Serial.print(" Motor pose: ");
-    // Serial.print(pos[0]);
+    // Serial.print(pos[1]);
     // Serial.print(" Set point: ");
-    // Serial.println(sp[0]);
-    // Serial.print(" LASTSet point: ");
-    // Serial.println(last_sp[0]);
-    
+    // Serial.println(sp[1]);
+
     vTaskDelayUntil(&lastWakeTime, dt);
   }
 }
