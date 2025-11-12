@@ -11,11 +11,11 @@ PIDcontroller::PIDcontroller(float Kp, float Kd, float Ki, float dt)
 /// @param Kp Proportional gain
 /// @param Kd Derivative gain
 /// @param Ki Integral gain
-void PIDcontroller::updateGains(float Kp, float Kd, float Ki)
+void PIDcontroller::updateGains(Graspe::ControllerGains controllerGains)
 {
-    _Kp = Kp;
-    _Kd = Kd;
-    _Ki = Ki;
+    _Kp = controllerGains.Kp;
+    _Kd = controllerGains.Kd;
+    _Ki = controllerGains.Ki;
 }
 
 /// @brief Returns the control action (positional PID form)

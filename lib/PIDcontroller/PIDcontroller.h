@@ -1,6 +1,8 @@
 #ifndef _PID_CONTROLLER_
 #define _PID_CONTROLLER_
 
+#include <Graspe.h>
+
 /// @brief PID Controller class
 class PIDcontroller
 {
@@ -14,7 +16,7 @@ private:
 
 public:
     PIDcontroller(float Kp, float Kd, float Ki, float dt);
-    void updateGains(float Kp, float Kd, float Ki);
+    void updateGains(Graspe::ControllerGains controllerGains);
     float action(float error);
     void reset();
 };

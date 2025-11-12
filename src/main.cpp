@@ -50,7 +50,10 @@ void controlLoopTask(void * parameter) {
 
     if (localRobotState.updateController)
     {
-      /* TODO: Change controller Gains */
+      m1_controller.updateGains(localRobotState.controllerGains[0]);
+      m2_controller.updateGains(localRobotState.controllerGains[1]);
+      m3_controller.updateGains(localRobotState.controllerGains[2]);
+      m4_controller.updateGains(localRobotState.controllerGains[3]);
       localRobotState.updateController = false;
     }
 
