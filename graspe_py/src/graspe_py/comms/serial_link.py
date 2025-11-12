@@ -81,8 +81,7 @@ class SerialLink:
                 print(f"[SerialLink] Erro na leitura: {e}")
                 time.sleep(0.1)
         print("[SerialLink] Thread de leitura finalizada")
-
-    # ---------- Recepção ----------
+    
     def get_message(self, timeout=None):
         try:
             return self._rx_queue.get(timeout=timeout)
@@ -106,37 +105,29 @@ class SerialLink:
     # ---------- Função para obter a posição do motor 2 ----------
     def obter_posicao_motor(self):
         """
-        Lê mensagens no formato <posqXVALOR> e retorna (X, VALOR)
-        Exemplo: "<posq2 123.456>" -> (2, 123.456)
+        Reads a message in the format:
+            <POSALL q1 q2 q3 q4>
+        Returns:
+            tuple[float, float, float, float]: The joint positions, or None if the format is invalid.
         """
         msg: str = self.get_message(timeout=1)
         if not msg:
             print("not msg")
             return None, None
 
-        # Exemplo esperado: <posq1 123.456>
-        if msg.startswith("posq"):
+        if msg.startswith("POSALL"):
             try:
-                # Extrai o número do motor logo após 'posq'
-                if msg[4].isdigit():
-                    motor_index = int(msg[4])
-                else:
-                    print("Fudeu, não é digito")
+                parts = msg.split()
+                if len(parts) != 5:
+                    print(f"[SerialBridge] Unexpected message format: {msg}")
+                    return None
 
-                # Extrai o valor numérico restante
-                valor_str = msg[5:]
-                print(msg)
-                print(valor_str)
-                motor_position = float(valor_str)
+                positions = tuple(float(x) for x in parts[1:])
+                print(positions)
+                return positions
 
-                return motor_index, motor_position
-
-            except Exception as e:
-                print(f"[SerialLink] Erro ao interpretar mensagem de posição: {e}")
-
-        elif msg == "<ACK>":
-            print("[SerialLink] Recebido ACK da ESP32")
-
+            except ValueError as e:
+                print(f"[SerialBridge] Value conversion error: {e}")
+                return None
         else:
-            print("[SerialLink] Mensagem não começa com <posq")
-        return None, None
+            return None

@@ -57,11 +57,13 @@ def atualizar_slider(i, valor):
 def update_real_robot():
     
     if link.is_connected():
-        motor_idx, pos = link.obter_posicao_motor()
-        if motor_idx is None:
+        q_real_temp = link.obter_posicao_motor()
+        if  q_real_temp is None:
             pass
         else:
-            q_real_deg[motor_idx-1] = pos
+            q_real_temp_deg = np.rad2deg(q_real_temp)
+            q_real_deg[0] = q_real_temp_deg[0]
+            q_real_deg[1] = q_real_temp_deg[1]
             draw_robot(np.deg2rad(q_real_deg), ax_3d_1, canvas_3d_1)
 
     # recall again this function after 40ms

@@ -2,7 +2,10 @@
 #include <Graspe.h>
 #include <SerialBridge.h>
 #include <MotorEncoder.h>
+#include <MotorController.h>
+#include <PIDcontroller.h>
 
+#define DEBUG_CODE false
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
 #define CONTROL_LOOP_DELAY_MS 20      // 50 hz control loop
 #define SERIAL_LOOP_DELAY_MS 100      // 10 hz serial communication loop
@@ -18,15 +21,25 @@ Graspe::RobotState currentRobotState;
 
 void controlLoopTask(void * parameter) {
 
-  // TODO: Add Motor Control Initialization Here
-  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
-  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
-  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 3934.16, 269.249, 13.552, 5.0, 1e-3);
+  MotorController m1_driver(MOTOR1_PIN_A, MOTOR1_PIN_B);
+  MotorController m2_driver(MOTOR2_PIN_A, MOTOR2_PIN_B);
+  MotorController m3_driver(MOTOR3_PIN_A, MOTOR3_PIN_B);
+  MotorController m4_driver(MOTOR4_PIN_A, MOTOR4_PIN_B);
 
-  // TODO: Implement the controler to move to the startposition of the manipulator
+  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.008743444454, 5.0e-3, 0.1);
+  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.01083128044, 5.0e-3, 0.1);
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.1677506961, 5.0e-3, 0.1); // TODO: Find better Kalman Parameter
 
+  PIDcontroller m1_controller(0.9, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m2_controller(1.2, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m3_controller(0.9, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m4_controller(0.7, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+
+  // TODO: Do the startup control to set the manipulator on start position
+  
   Graspe::RobotState localRobotState;
+  float u[4] = {0};
 
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(CONTROL_LOOP_DELAY_MS);
@@ -46,14 +59,32 @@ void controlLoopTask(void * parameter) {
     localRobotState.jointPosition[1] = m2_encoder.getFilteredAngle();
     localRobotState.jointPosition[2] = m3_encoder.getFilteredAngle();
     localRobotState.jointPosition[3] = m4_encoder.getFilteredAngle();
-
-    xSemaphoreTake(stateMutex, portMAX_DELAY);
-      Graspe::updateRobotStateControlLoop(localRobotState, currentRobotState);
-    xSemaphoreGive(stateMutex);
-
-    /*     TODO     */
-    /* CONTROL LOOP */
     
+    float e[4];
+    for (int i = 0; i < 4; i++)
+    {
+      e[i] = localRobotState.jointSetpoint[i] - localRobotState.jointPosition[i];
+    }
+
+    u[0] = 255 * m1_controller.action(e[0]);
+    u[1] = 255 * m2_controller.action(e[1]);
+    u[2] = 255 * m3_controller.action(e[2]);
+    u[3] = 255 * m4_controller.action(e[3]);
+
+    m1_driver.action(u[0]);
+    m2_driver.action(u[1]);
+    m3_driver.action(u[2]);
+    m4_driver.action(u[3]);
+
+    #if DEBUG_CODE
+    Serial.print("Motor Action: ");
+    Serial.print(u[1]);
+    Serial.print(" Motor pose: ");
+    Serial.print(pos[1]);
+    Serial.print(" Set point: ");
+    Serial.println(sp[1]);
+    #endif
+
     vTaskDelayUntil(&lastWakeTime, dt);
   }
 }
@@ -65,6 +96,7 @@ void serialBridgeTask(void * parameter) {
   while (serialBridge.performHandshake() == false)
   {
     GraspeGPIO::indicateStatus(true, false, false);
+    // Serial.println(ADRIANO_ASCII);
     Serial.println("<NO_CONNECTION_TRYING_AGAIN>");
     Serial.flush();
     vTaskDelay(pdMS_TO_TICKS(HANDSHAKE_RETRY_DELAY_MS));;

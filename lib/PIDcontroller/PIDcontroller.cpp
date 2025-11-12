@@ -2,37 +2,52 @@
 #include <Arduino.h>
 
 PIDcontroller::PIDcontroller(float Kp, float Kd, float Ki, float dt)
-    : _Kp(Kp), _Kd(Kd), _Ki(Ki), _dt(dt), e(0), e1(0), e2(0), last_action(0)
+    : _Kp(Kp), _Kd(Kd), _Ki(Ki), _dt(dt),
+      e(0.0f), e1(0.0f), integral(0.0f)
 {
-    computeCoefficients();
 }
 
 /// @brief Update gains in running time
-/// @param Kp Proporcional gain
+/// @param Kp Proportional gain
 /// @param Kd Derivative gain
-/// @param Ki Integrate gain
-void PIDcontroller::updateGains(float Kp, float Kd, float Ki) {
+/// @param Ki Integral gain
+void PIDcontroller::updateGains(float Kp, float Kd, float Ki)
+{
     _Kp = Kp;
     _Kd = Kd;
     _Ki = Ki;
-    computeCoefficients();
 }
 
-/// @brief Returns the control action
+/// @brief Returns the control action (positional PID form)
 /// @param error System error
-/// @return Action
-float PIDcontroller::action(float error) {
-    // shift errors
-    e2 = e1;
-    e1 = e;
-    e = error;
+/// @return Control action
+float PIDcontroller::action(float error)
+{
+    if (0.05 > abs(error))
+    {
+        return 0.0f;
+    }
+    
+    // Compute derivative and integral
+    float derivative = (error - e1) / _dt;
+    integral += error * _dt;
 
-    // compute new action (incremental form)
-    float u = last_action + q0 * e + q1 * e1 + q2 * e2;
-    u = constrain(u, -1, 1);
+    // Compute PID output
+    float u = _Kp * error + _Ki * integral + _Kd * derivative;
 
-    // update last action
-    last_action = u;
+    // Constrain output
+    u = constrain(u, -1.0f, 1.0f);
+
+    // Save previous error
+    e1 = error;
 
     return u;
+}
+
+/// @brief Reset all internal states
+void PIDcontroller::reset()
+{
+    e = 0.0f;
+    e1 = 0.0f;
+    integral = 0.0f;
 }
