@@ -5,6 +5,7 @@
 #include <MotorController.h>
 #include <PIDcontroller.h>
 
+#define DEBUG_CODE false
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
 #define CONTROL_LOOP_DELAY_MS 20      // 50 hz control loop
 #define SERIAL_LOOP_DELAY_MS 100      // 10 hz serial communication loop
@@ -48,11 +49,6 @@ void controlLoopTask(void * parameter) {
     xSemaphoreGive(stateMutex); 
 
     // Read current positions from encoders
-    // pos[0] = m1_encoder.getFilteredAngle();
-    // pos[1] = m2_encoder.getFilteredAngle();
-    // pos[2] = m3_encoder.getFilteredAngle();
-    // pos[3] = m4_encoder.getFilteredAngle();
-
     pos[0] = m1_encoder.getFilteredAngle();
     pos[1] = m2_encoder.getFilteredAngle();
     pos[2] = m3_encoder.getAngle();
@@ -74,13 +70,14 @@ void controlLoopTask(void * parameter) {
     m3_driver.action(u[2]);
     m4_driver.action(u[3]);
 
-    // DEBUG CODE
-    // Serial.print("Motor Action: ");
-    // Serial.print(u[1]);
-    // Serial.print(" Motor pose: ");
-    // Serial.print(pos[1]);
-    // Serial.print(" Set point: ");
-    // Serial.println(sp[1]);
+    #if DEBUG_CODE
+    Serial.print("Motor Action: ");
+    Serial.print(u[1]);
+    Serial.print(" Motor pose: ");
+    Serial.print(pos[1]);
+    Serial.print(" Set point: ");
+    Serial.println(sp[1]);
+    #endif
 
     vTaskDelayUntil(&lastWakeTime, dt);
   }
