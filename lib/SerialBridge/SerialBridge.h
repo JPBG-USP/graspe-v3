@@ -12,7 +12,8 @@ namespace SerialBridgeCommands
         NO_COMMAND,
         SET_JOINT_POSITION,
         SET_ALL_JOINT_POSITIONS,
-        CHANGE_CONTROLLER_GAINS
+        CHANGE_CONTROLLER_GAINS,
+        CHANGE_MOTOR_POWER_STATE
     };
 
     /// @brief The command to set a single Graspe joint position. (in radians)
@@ -39,6 +40,11 @@ namespace SerialBridgeCommands
         float Kd;
         float Ki;
     };
+
+    /// @brief The command to change all motors power state (on or off)
+    struct ChangeMotorPowerState{
+        bool state;
+    };
     
 
     /// @brief The general command structure.
@@ -50,6 +56,7 @@ namespace SerialBridgeCommands
             JointPosCmd joint;
             GraspeJointPosCmd manipulator;
             ChangeControllerGains controller;
+            ChangeMotorPowerState motors_power;
         } data;
     };
 } // namespace SerialBridgeCommands
