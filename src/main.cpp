@@ -28,8 +28,8 @@ void controlLoopTask(void * parameter) {
 
   MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.008743444454, 5.0e-3, 0.1);
   MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.01083128044, 5.0e-3, 0.1);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0.01077866635, 3.0e-3, 0.1);      // TODO: Find better Kalman Parameter
-  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.01090979542, 3.0e-3, 0.1); // TODO: Find better Kalman Parameter
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0.01077866635, 3.0e-3, 0.1);
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.01090979542, 3.0e-3, 0.1);
 
   PIDcontroller m1_controller(0.9, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
   PIDcontroller m2_controller(1.2, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
@@ -39,7 +39,6 @@ void controlLoopTask(void * parameter) {
   // TODO: Do the startup control to set the manipulator on start position
   
   Graspe::RobotState localRobotState;
-  float u[4] = {0};
 
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(CONTROL_LOOP_DELAY_MS);
@@ -69,10 +68,14 @@ void controlLoopTask(void * parameter) {
       e[i] = localRobotState.jointSetpoint[i] - localRobotState.jointPosition[i];
     }
 
-    u[0] = 255 * m1_controller.action(e[0]);
-    u[1] = 255 * m2_controller.action(e[1]);
-    u[2] = 255 * m3_controller.action(e[2]);
-    u[3] = 255 * m4_controller.action(e[3]);
+    float u[4] = {0};
+
+    if(localRobotState.motorPower){
+      u[0] = 255 * m1_controller.action(e[0]);
+      u[1] = 255 * m2_controller.action(e[1]);
+      u[2] = 255 * m3_controller.action(e[2]);
+      u[3] = 255 * m4_controller.action(e[3]);
+    }
 
     m1_driver.action(u[0]);
     m2_driver.action(u[1]);
@@ -111,9 +114,9 @@ void serialBridgeTask(void * parameter) {
 
   // Joint Start position
   localRobotState.jointSetpoint[0] = PI/2;
-  localRobotState.jointSetpoint[1] = 0.0f;
-  localRobotState.jointSetpoint[2] = 0.0f;
-  localRobotState.jointSetpoint[3] = 0.0f;
+  localRobotState.jointSetpoint[1] = 0.8f;
+  localRobotState.jointSetpoint[2] = 1.5f;
+  localRobotState.jointSetpoint[3] = 1.5f;
 
   // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();
@@ -144,6 +147,9 @@ void serialBridgeTask(void * parameter) {
         localRobotState.controllerGains[joint_idx].Kp = command.data.controller.Kp;
         localRobotState.controllerGains[joint_idx].Kd = command.data.controller.Kd;
         localRobotState.controllerGains[joint_idx].Ki = command.data.controller.Ki;
+      }
+      if (command.type == SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE){
+        localRobotState.motorPower = command.data.motors_power.state;
       }
     }
     xSemaphoreTake(stateMutex, portMAX_DELAY);

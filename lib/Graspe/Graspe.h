@@ -59,6 +59,7 @@ namespace Graspe{
         float jointSetpoint[4];
         float jointPosition[4];
         bool updateController = false;
+        bool motorPower = true;
         ControllerGains controllerGains[4];
     };
 

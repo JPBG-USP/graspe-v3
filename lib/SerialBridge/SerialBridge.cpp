@@ -253,6 +253,18 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
         return cmd;
     }
 
+    if(msg.startsWith("MOTORSON")){
+        cmd.type = SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE;
+        cmd.data.motors_power.state = true;
+        return cmd;
+    }
+
+    if(msg.startsWith("MOTORSOFF")){
+        cmd.type = SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE;
+        cmd.data.motors_power.state = false; 
+        return cmd;
+    }
+
     cmd.type = SerialBridgeCommands::NO_COMMAND;
     return cmd;
 }
@@ -290,6 +302,12 @@ bool SerialBridge::sendCommandAck(SerialBridgeCommands::Command cmd){
     case SerialBridgeCommands::CHANGE_CONTROLLER_GAINS:
         ack_msg += "SETGAINS" + String(cmd.data.controller.joint_idx) + " " + String(cmd.data.controller.Kp)
                     + " " + String(cmd.data.controller.Kd) + " " + String(cmd.data.controller.Ki);
+        sendMessage(ack_msg);
+        return true;
+    case SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE:
+        ack_msg += "MOTORS" + String(cmd.data.motors_power.state ? "ON" : "OFF");
+        sendMessage(ack_msg);
+        return true;
     default:
         return false;;
     }
