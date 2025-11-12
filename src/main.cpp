@@ -26,25 +26,29 @@ void controlLoopTask(void * parameter) {
 
   // TODO: Implement the controler to move to the startposition of the manipulator
 
-  float sp[4], pos[4];
+  Graspe::RobotState localRobotState;
 
   TickType_t lastWakeTime = xTaskGetTickCount();
   const TickType_t dt = pdMS_TO_TICKS(CONTROL_LOOP_DELAY_MS);
   for(;;) {
     xSemaphoreTake(stateMutex, portMAX_DELAY);
-      memcpy(sp, currentRobotState.jointSetpoint, sizeof(sp));
+      Graspe::updateRobotStateControlLoop(localRobotState, currentRobotState);
     xSemaphoreGive(stateMutex);
 
+    if (localRobotState.updateController)
+    {
+      /* TODO: Change controller Gains */
+      localRobotState.updateController = false;
+    }
+
     // Read current positions from encoders
-    pos[0] = m1_encoder.getFilteredAngle();
-    pos[1] = m2_encoder.getFilteredAngle();
-    pos[2] = m3_encoder.getFilteredAngle();
-    pos[3] = m4_encoder.getFilteredAngle();
+    localRobotState.jointPosition[0] = m1_encoder.getFilteredAngle();
+    localRobotState.jointPosition[1] = m2_encoder.getFilteredAngle();
+    localRobotState.jointPosition[2] = m3_encoder.getFilteredAngle();
+    localRobotState.jointPosition[3] = m4_encoder.getFilteredAngle();
 
     xSemaphoreTake(stateMutex, portMAX_DELAY);
-      for (int i = 0; i < 4; i++) {
-          currentRobotState.jointPosition[i] = pos[i];
-      }
+      Graspe::updateRobotStateControlLoop(localRobotState, currentRobotState);
     xSemaphoreGive(stateMutex);
 
     /*     TODO     */
@@ -68,8 +72,13 @@ void serialBridgeTask(void * parameter) {
   }
   Serial.println("<SYSTEM_READY>");
 
-  float receivedSetpoint[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // TODO: Add initialization based on current state
-  float currentPosition[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  Graspe::RobotState localRobotState;
+
+  // Joint Start position
+  localRobotState.jointSetpoint[0] = PI/2;
+  localRobotState.jointSetpoint[1] = 0.0f;
+  localRobotState.jointSetpoint[2] = 0.0f;
+  localRobotState.jointSetpoint[3] = 0.0f;
 
   // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();
@@ -84,30 +93,37 @@ void serialBridgeTask(void * parameter) {
       if (command.type == SerialBridgeCommands::SET_JOINT_POSITION) {
         uint8_t idx = command.data.joint.joint_idx;
         if (idx < 4) {
-          receivedSetpoint[idx] = command.data.joint.pos;
+          localRobotState.jointSetpoint[idx] = command.data.joint.pos;
         }
-      } else if (command.type == SerialBridgeCommands::SET_ALL_JOINT_POSITIONS) {
-        receivedSetpoint[0] = command.data.manipulator.q1;
-        receivedSetpoint[1] = command.data.manipulator.q2;
-        receivedSetpoint[2] = command.data.manipulator.q3;
-        receivedSetpoint[3] = command.data.manipulator.q4;
       }
-
-      // Update desired setpoints based on received command
-      xSemaphoreTake(stateMutex, portMAX_DELAY);
-        for (int i = 0; i < 4; i++) {
-          currentRobotState.jointSetpoint[i] = receivedSetpoint[i];
-        }
-      xSemaphoreGive(stateMutex);  
+      if (command.type == SerialBridgeCommands::SET_ALL_JOINT_POSITIONS) {
+        localRobotState.jointSetpoint[0] = command.data.manipulator.q1;
+        localRobotState.jointSetpoint[1] = command.data.manipulator.q2;
+        localRobotState.jointSetpoint[2] = command.data.manipulator.q3;
+        localRobotState.jointSetpoint[3] = command.data.manipulator.q4;
+      }
+      if (command.type == SerialBridgeCommands::CHANGE_CONTROLLER_GAINS)
+      {
+        int joint_idx = command.data.controller.joint_idx;
+        localRobotState.updateController = true;
+        localRobotState.controllerGains[joint_idx].Kp = command.data.controller.Kp;
+        localRobotState.controllerGains[joint_idx].Kd = command.data.controller.Kd;
+        localRobotState.controllerGains[joint_idx].Ki = command.data.controller.Ki;
+      }
     }
     xSemaphoreTake(stateMutex, portMAX_DELAY);
-      serialBridge.sendFeedbackPositions(
-          currentRobotState.jointPosition[0],
-          currentRobotState.jointPosition[1],
-          currentRobotState.jointPosition[2],
-          currentRobotState.jointPosition[3]
-      );
+      Graspe::updateRobotStateSerialLoop(localRobotState, currentRobotState);
     xSemaphoreGive(stateMutex);
+
+    localRobotState.updateController = false;
+
+    serialBridge.sendFeedbackPositions(
+        localRobotState.jointPosition[0],
+        localRobotState.jointPosition[1],
+        localRobotState.jointPosition[2],
+        localRobotState.jointPosition[3]
+    );
+
     vTaskDelayUntil(&lastWakeTime, dt);
   }
 }

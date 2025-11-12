@@ -11,7 +11,8 @@ namespace SerialBridgeCommands
     {
         NO_COMMAND,
         SET_JOINT_POSITION,
-        SET_ALL_JOINT_POSITIONS
+        SET_ALL_JOINT_POSITIONS,
+        CHANGE_CONTROLLER_GAINS
     };
 
     /// @brief The command to set a single Graspe joint position. (in radians)
@@ -30,6 +31,16 @@ namespace SerialBridgeCommands
         float q4;
     };
 
+    /// @brief The command to change a joint controller gains
+    struct ChangeControllerGains
+    {
+        int joint_idx;
+        float Kp;
+        float Kd;
+        float Ki;
+    };
+    
+
     /// @brief The general command structure.
     struct Command
     {
@@ -38,6 +49,7 @@ namespace SerialBridgeCommands
         {
             JointPosCmd joint;
             GraspeJointPosCmd manipulator;
+            ChangeControllerGains controller;
         } data;
     };
 } // namespace SerialBridgeCommands
