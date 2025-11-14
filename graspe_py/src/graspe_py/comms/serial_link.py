@@ -123,7 +123,7 @@ class SerialLink:
                     return None
 
                 positions = tuple(float(x) for x in parts[1:])
-                print(positions)
+
                 return positions
 
             except ValueError as e:
