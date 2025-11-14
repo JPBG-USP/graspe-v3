@@ -348,7 +348,7 @@ void SerialBridge::sendMessage(const String& msg){
  * @return true if the message was sent successfully.
  */
 bool SerialBridge::sendFeedbackPositions(float q1, float q2, float q3, float q4){
-    String feedback_msg = "POSALL " + String(q1) + " " + String(q2) + " " + String(q3) + " " + String(q4);
+    String feedback_msg = "POSALL " + String(q1, 3) + " " + String(q2, 3) + " " + String(q3, 3) + " " + String(q4, 3);
     sendMessage(feedback_msg);
     return true;
 }

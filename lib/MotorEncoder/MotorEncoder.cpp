@@ -38,7 +38,7 @@ float MotorEncoder::getAngle() const{
     uint16_t pot_read = readPot();
     float angle;
 
-    angle = ((pot_read-_pot_init)*_slope)+_displacement;
+    angle = ((float(pot_read) - float(_pot_init))*_slope) + _displacement;
 
     return angle;
 }
