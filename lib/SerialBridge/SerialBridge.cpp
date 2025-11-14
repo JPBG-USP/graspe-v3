@@ -216,6 +216,13 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
 
         String part = msg.substring(start, end);
         cmd.data.controller.joint_idx = part.toInt();
+
+        if (cmd.data.controller.joint_idx <= 0)
+        {
+            cmd.type = SerialBridgeCommands::NO_COMMAND;
+            return cmd;
+        }
+        
         start = end + 1;
         
         // Read gains
@@ -300,7 +307,7 @@ bool SerialBridge::sendCommandAck(SerialBridgeCommands::Command cmd){
         sendMessage(ack_msg);
         return true;
     case SerialBridgeCommands::CHANGE_CONTROLLER_GAINS:
-        ack_msg += "SETGAINS" + String(cmd.data.controller.joint_idx) + " " + String(cmd.data.controller.Kp)
+        ack_msg += "SETGAINS " + String(cmd.data.controller.joint_idx) + " " + String(cmd.data.controller.Kp)
                     + " " + String(cmd.data.controller.Kd) + " " + String(cmd.data.controller.Ki);
         sendMessage(ack_msg);
         return true;

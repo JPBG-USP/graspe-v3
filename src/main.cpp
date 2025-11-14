@@ -49,11 +49,24 @@ void controlLoopTask(void * parameter) {
 
     if (localRobotState.updateController)
     {
-      m1_controller.updateGains(localRobotState.controllerGains[0]);
-      m2_controller.updateGains(localRobotState.controllerGains[1]);
-      m3_controller.updateGains(localRobotState.controllerGains[2]);
-      m4_controller.updateGains(localRobotState.controllerGains[3]);
       localRobotState.updateController = false;
+      switch (localRobotState.controllerGains.joint_idx)
+      {
+        case 1: // Motor 1
+          m1_controller.updateGains(localRobotState.controllerGains);
+          break;
+        case 2: // Motor 2
+          m2_controller.updateGains(localRobotState.controllerGains);
+          break;
+        case 3: // Motor 3
+          m3_controller.updateGains(localRobotState.controllerGains);
+          break;
+        case 4: // Motor 4
+          m4_controller.updateGains(localRobotState.controllerGains);
+          break;
+      default:
+          break;
+      }
     }
 
     // Read current positions from encoders
@@ -142,11 +155,11 @@ void serialBridgeTask(void * parameter) {
       }
       if (command.type == SerialBridgeCommands::CHANGE_CONTROLLER_GAINS)
       {
-        int joint_idx = command.data.controller.joint_idx;
         localRobotState.updateController = true;
-        localRobotState.controllerGains[joint_idx].Kp = command.data.controller.Kp;
-        localRobotState.controllerGains[joint_idx].Kd = command.data.controller.Kd;
-        localRobotState.controllerGains[joint_idx].Ki = command.data.controller.Ki;
+        localRobotState.controllerGains.joint_idx = command.data.controller.joint_idx;
+        localRobotState.controllerGains.Kp = command.data.controller.Kp;
+        localRobotState.controllerGains.Kd = command.data.controller.Kd;
+        localRobotState.controllerGains.Ki = command.data.controller.Ki;
       }
       if (command.type == SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE){
         localRobotState.motorPower = command.data.motors_power.state;
