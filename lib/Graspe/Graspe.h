@@ -18,6 +18,7 @@
 #define MOTOR3_PIN_B 18
 #define MOTOR4_PIN_A 19
 #define MOTOR4_PIN_B 23
+#define MOTORGARRA_PIN 2
 
 // Motor Encoder pins
 #define MOTOR1_ENCODER_PIN 36
@@ -61,6 +62,7 @@ namespace Graspe{
         float jointPosition[4];
         bool updateController = false;
         bool motorPower = true;
+        bool gripperOn = false;
         ControllerGains controllerGains;
     };
 

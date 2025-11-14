@@ -164,6 +164,10 @@ void serialBridgeTask(void * parameter) {
       if (command.type == SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE){
         localRobotState.motorPower = command.data.motors_power.state;
       }
+      if (command.type == SerialBridgeCommands::CHANGE_GRIPPER_STATE){
+        localRobotState.gripperOn = command.data.gripper.state;
+      }
+      
     }
     xSemaphoreTake(stateMutex, portMAX_DELAY);
       Graspe::updateRobotStateSerialLoop(localRobotState, currentRobotState);
@@ -177,7 +181,7 @@ void serialBridgeTask(void * parameter) {
         localRobotState.jointPosition[2],
         localRobotState.jointPosition[3]
     );
-
+    
     vTaskDelayUntil(&lastWakeTime, dt);
   }
 }
