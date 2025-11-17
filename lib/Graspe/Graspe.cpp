@@ -23,6 +23,15 @@ void Graspe::updateRobotStateSerialLoop(RobotState &localRobotState, RobotState 
 
     globalRobotState.updateController = localRobotState.updateController;
     globalRobotState.motorPower = localRobotState.motorPower;
+    
+    // Update controler gains if is true
+    if (globalRobotState.updateController)
+    {
+        globalRobotState.controllerGains.joint_idx = localRobotState.controllerGains.joint_idx;
+        globalRobotState.controllerGains.Kp = localRobotState.controllerGains.Kp;
+        globalRobotState.controllerGains.Kd = localRobotState.controllerGains.Kd;
+        globalRobotState.controllerGains.Ki = localRobotState.controllerGains.Ki;
+    }        
 
     // For each joint
     for (int i = 0; i < 4; i++)
@@ -30,13 +39,6 @@ void Graspe::updateRobotStateSerialLoop(RobotState &localRobotState, RobotState 
         globalRobotState.jointSetpoint[i] = localRobotState.jointSetpoint[i];
         localRobotState.jointPosition[i] = globalRobotState.jointPosition[i];
         
-        // Update controler gains if is true
-        if (globalRobotState.updateController)
-        {
-            globalRobotState.controllerGains[i].Kp = localRobotState.controllerGains[i].Kp;
-            globalRobotState.controllerGains[i].Kd = localRobotState.controllerGains[i].Kd;
-            globalRobotState.controllerGains[i].Ki = localRobotState.controllerGains[i].Ki;
-        }        
     }
 };
 
@@ -61,6 +63,14 @@ void Graspe::updateRobotStateControlLoop(RobotState &localRobotState, RobotState
     localRobotState.updateController = globalRobotState.updateController;
     localRobotState.motorPower = globalRobotState.motorPower;
 
+    if (globalRobotState.updateController)
+    {
+        localRobotState.controllerGains.joint_idx = globalRobotState.controllerGains.joint_idx;
+        localRobotState.controllerGains.Kp = globalRobotState.controllerGains.Kp;
+        localRobotState.controllerGains.Kd = globalRobotState.controllerGains.Kd;
+        localRobotState.controllerGains.Ki = globalRobotState.controllerGains.Ki;
+    }        
+    
     // For each joint
     for (int i = 0; i < 4; i++)
     {
@@ -68,11 +78,5 @@ void Graspe::updateRobotStateControlLoop(RobotState &localRobotState, RobotState
         globalRobotState.jointPosition[i] = localRobotState.jointPosition[i];
 
         // Update controler gains if is true
-        if (globalRobotState.updateController)
-        {
-            localRobotState.controllerGains[i].Kp = globalRobotState.controllerGains[i].Kp;
-            localRobotState.controllerGains[i].Kd = globalRobotState.controllerGains[i].Kd;
-            localRobotState.controllerGains[i].Ki = globalRobotState.controllerGains[i].Ki;
-        }        
     }
 };

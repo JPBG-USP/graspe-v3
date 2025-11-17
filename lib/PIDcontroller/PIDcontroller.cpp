@@ -23,14 +23,13 @@ void PIDcontroller::updateGains(Graspe::ControllerGains controllerGains)
 /// @return Control action
 float PIDcontroller::action(float error)
 {
-    if (0.05 > abs(error))
-    {
-        return 0.0f;
-    }
+    // if (0.02 > abs(error))
+    //     return 0.0f;
     
     // Compute derivative and integral
     float derivative = (error - e1) / _dt;
     integral += error * _dt;
+    integral = constrain(integral, -1.0, -1.0);
 
     // Compute PID output
     float u = _Kp * error + _Ki * integral + _Kd * derivative;

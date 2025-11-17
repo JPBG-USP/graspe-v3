@@ -216,6 +216,13 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
 
         String part = msg.substring(start, end);
         cmd.data.controller.joint_idx = part.toInt();
+
+        if (cmd.data.controller.joint_idx <= 0)
+        {
+            cmd.type = SerialBridgeCommands::NO_COMMAND;
+            return cmd;
+        }
+        
         start = end + 1;
         
         // Read gains
@@ -300,7 +307,7 @@ bool SerialBridge::sendCommandAck(SerialBridgeCommands::Command cmd){
         sendMessage(ack_msg);
         return true;
     case SerialBridgeCommands::CHANGE_CONTROLLER_GAINS:
-        ack_msg += "SETGAINS" + String(cmd.data.controller.joint_idx) + " " + String(cmd.data.controller.Kp)
+        ack_msg += "SETGAINS " + String(cmd.data.controller.joint_idx) + " " + String(cmd.data.controller.Kp)
                     + " " + String(cmd.data.controller.Kd) + " " + String(cmd.data.controller.Ki);
         sendMessage(ack_msg);
         return true;
@@ -341,7 +348,7 @@ void SerialBridge::sendMessage(const String& msg){
  * @return true if the message was sent successfully.
  */
 bool SerialBridge::sendFeedbackPositions(float q1, float q2, float q3, float q4){
-    String feedback_msg = "POSALL " + String(q1) + " " + String(q2) + " " + String(q3) + " " + String(q4);
+    String feedback_msg = "POSALL " + String(q1, 3) + " " + String(q2, 3) + " " + String(q3, 3) + " " + String(q4, 3);
     sendMessage(feedback_msg);
     return true;
 }

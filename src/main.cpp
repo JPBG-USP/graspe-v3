@@ -26,15 +26,15 @@ void controlLoopTask(void * parameter) {
   MotorController m3_driver(MOTOR3_PIN_A, MOTOR3_PIN_B);
   MotorController m4_driver(MOTOR4_PIN_A, MOTOR4_PIN_B);
 
-  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.008743444454, 5.0e-3, 0.1);
-  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.01083128044, 5.0e-3, 0.1);
-  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0, 5.0e-3, 0.1);      // TODO: Find better Kalman Parameter
-  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.1677506961, 5.0e-3, 0.1); // TODO: Find better Kalman Parameter
+  MotorEncoder m1_encoder(MOTOR1_ENCODER_PIN, 3831, 104, 0.0, PI, 0.005941603939, 2.0e-3, 0.1);
+  MotorEncoder m2_encoder(MOTOR2_ENCODER_PIN, 731, 2830, 0, 2.02263, 0.007445738567, 2.0e-3, 0.1);
+  MotorEncoder m3_encoder(MOTOR3_ENCODER_PIN, 419, 2902, -PI/2, PI/2, 0.01074133152, 2.0e-3, 0.1);
+  MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.01189513862, 2.0e-3, 0.1);
 
-  PIDcontroller m1_controller(0.9, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m2_controller(1.2, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m1_controller(1.8, 0.1, 0.1, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m2_controller(1.6, 0.1, 0.3, CONTROL_LOOP_DELAY_MS/1000.0f);
   PIDcontroller m3_controller(0.9, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m4_controller(0.7, 0.1, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m4_controller(1.4, 0.08, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
 
   // TODO: Do the startup control to set the manipulator on start position
   
@@ -49,11 +49,24 @@ void controlLoopTask(void * parameter) {
 
     if (localRobotState.updateController)
     {
-      m1_controller.updateGains(localRobotState.controllerGains[0]);
-      m2_controller.updateGains(localRobotState.controllerGains[1]);
-      m3_controller.updateGains(localRobotState.controllerGains[2]);
-      m4_controller.updateGains(localRobotState.controllerGains[3]);
       localRobotState.updateController = false;
+      switch (localRobotState.controllerGains.joint_idx)
+      {
+        case 1: // Motor 1
+          m1_controller.updateGains(localRobotState.controllerGains);
+          break;
+        case 2: // Motor 2
+          m2_controller.updateGains(localRobotState.controllerGains);
+          break;
+        case 3: // Motor 3
+          m3_controller.updateGains(localRobotState.controllerGains);
+          break;
+        case 4: // Motor 4
+          m4_controller.updateGains(localRobotState.controllerGains);
+          break;
+      default:
+          break;
+      }
     }
 
     // Read current positions from encoders
@@ -81,8 +94,6 @@ void controlLoopTask(void * parameter) {
     m2_driver.action(u[1]);
     m3_driver.action(u[2]);
     m4_driver.action(u[3]);
-
-    Serial.println(localRobotState.motorPower);
 
     #if DEBUG_CODE
     Serial.print("Motor Action: ");
@@ -116,9 +127,9 @@ void serialBridgeTask(void * parameter) {
 
   // Joint Start position
   localRobotState.jointSetpoint[0] = PI/2;
-  localRobotState.jointSetpoint[1] = 0.0f;
-  localRobotState.jointSetpoint[2] = 0.0f;
-  localRobotState.jointSetpoint[3] = 0.0f;
+  localRobotState.jointSetpoint[1] = 0.8f;
+  localRobotState.jointSetpoint[2] = 1.5f;
+  localRobotState.jointSetpoint[3] = 1.5f;
 
   // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();
@@ -144,11 +155,11 @@ void serialBridgeTask(void * parameter) {
       }
       if (command.type == SerialBridgeCommands::CHANGE_CONTROLLER_GAINS)
       {
-        int joint_idx = command.data.controller.joint_idx;
         localRobotState.updateController = true;
-        localRobotState.controllerGains[joint_idx].Kp = command.data.controller.Kp;
-        localRobotState.controllerGains[joint_idx].Kd = command.data.controller.Kd;
-        localRobotState.controllerGains[joint_idx].Ki = command.data.controller.Ki;
+        localRobotState.controllerGains.joint_idx = command.data.controller.joint_idx;
+        localRobotState.controllerGains.Kp = command.data.controller.Kp;
+        localRobotState.controllerGains.Kd = command.data.controller.Kd;
+        localRobotState.controllerGains.Ki = command.data.controller.Ki;
       }
       if (command.type == SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE){
         localRobotState.motorPower = command.data.motors_power.state;

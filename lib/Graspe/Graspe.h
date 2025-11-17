@@ -49,6 +49,7 @@ namespace GraspeGPIO {
 namespace Graspe{
     struct ControllerGains
     {
+        int joint_idx;
         float Kp;
         float Kd;
         float Ki;
@@ -56,11 +57,11 @@ namespace Graspe{
 
     struct RobotState 
     {
-        float jointSetpoint[4];
+        float jointSetpoint[4] = {PI/2, 0.8f, 1.5f, 1.5f};
         float jointPosition[4];
         bool updateController = false;
         bool motorPower = true;
-        ControllerGains controllerGains[4];
+        ControllerGains controllerGains;
     };
 
     void updateRobotStateSerialLoop(RobotState &localRobotState, RobotState &globalRobotState);
