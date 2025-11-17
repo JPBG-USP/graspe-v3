@@ -29,7 +29,7 @@ def robot_view(frame: tk.Frame, title: str | None = None):
 
     return fig, ax, canvas
 
-def draw_robot(q_rad, ax, canvas):
+def draw_robot(q_rad, ax, canvas, garra: tk.BooleanVar = None):
     Ts = GRASPE_ROBOT.fkine_all(q_rad)
     xs, ys, zs = [0.0], [0.0], [0.0]
     for T in Ts:
@@ -44,12 +44,17 @@ def draw_robot(q_rad, ax, canvas):
     ax.set_zlabel("Z [m]")
     ax.plot(xs, ys, zs, marker="o", lw=4, ms=7, c="purple")
     ax.plot(xs[-1], ys[-1], 0, marker="o", lw=4, ms=7, c="red")
+    if garra.get() is not None:
+        if garra is True:
+            ax.plot(xs[-1], ys[-1], zs[-1], marker="o", lw=4, ms=7, c="green")
+        else:
+            ax.plot(xs[-1], ys[-1], zs[-1], marker="o", lw=4, ms=7, c="red")
     ax.scatter([xs[-1]], [ys[-1]], [zs[-1]], c="r", s=40)
 
     alcance = np.sum(np.abs([1.672, 1.26, 1.26, 0.5]))*1e-1
     ax.set_xlim([-alcance, alcance])
     ax.set_ylim([-alcance, alcance])
     ax.set_zlim([0, alcance])
-    ax.view_init(elev=30, azim=45)
+    ax.view_init(elev=30, azim=90)
 
     canvas.draw_idle()

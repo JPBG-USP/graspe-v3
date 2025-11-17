@@ -27,9 +27,6 @@ q_sim_deg = list(q_init_deg)
 
 q_atual_deg = list(q_init_deg)
 
-# desenha o robô nas duas visualizações 3D (usando draw_robot)
-draw_robot(np.deg2rad(q_init_deg), ax_3d_1, canvas_3d_1)
-draw_robot(np.deg2rad(q_init_deg), ax_3d_2, canvas_3d_2)
 
 # cria sliders no frame direito
 sliders = criar_sliders(frame_direita, q_init_deg, qlims_deg, q_atual_deg, draw_robot, ax_3d_1, canvas_3d_1)
@@ -40,13 +37,16 @@ link = SerialLink(port="/dev/ttyACM0", baudrate=115200)
 serial_frame = SerialControlFrame(frame_direita, link, q_atual_deg)
 serial_frame.pack(fill="x", padx=10, pady=10)
 
-criar_frame_registro(frame_direita, q_atual_deg, q_real_deg, link, draw_robot, window, ax_3d_2, canvas_3d_2)
+gripper_state = criar_frame_registro(frame_direita, q_atual_deg, q_real_deg, link, draw_robot, window, ax_3d_2, canvas_3d_2)
+# desenha o robô nas duas visualizações 3D (usando draw_robot)
+draw_robot(np.deg2rad(q_init_deg), ax_3d_1, canvas_3d_1, gripper_state)
+draw_robot(np.deg2rad(q_init_deg), ax_3d_2, canvas_3d_2, gripper_state)
 
 # Função para atualizar a visualização 3D com o estado dos sliders
 def update_stick_view():
     q_deg = np.array(q_atual_deg)  # pegamos os valores atuais dos sliders
     # Atualiza ambas as visualizações 3D com as novas juntas
-    draw_robot(np.deg2rad(q_deg), ax_3d_2, canvas_3d_2)  # Atualiza a 3D 1
+    draw_robot(np.deg2rad(q_deg), ax_3d_2, canvas_3d_2, gripper_state)
 
 # Callback para atualizar o estado do robô sempre que os sliders mudam
 def atualizar_slider(i, valor):
@@ -67,7 +67,7 @@ def update_real_robot():
             q_real_deg[:] = np.rad2deg(q_real_rad)
 
             # desenha o robô real com a posição recém-lida
-            draw_robot(q_real_rad, ax_3d_1, canvas_3d_1)
+            draw_robot(q_real_rad, ax_3d_1, canvas_3d_1, gripper_state)
 
     # recall again this function after 40ms
     window.after(40, update_real_robot)
