@@ -4,6 +4,7 @@
 #include <MotorEncoder.h>
 #include <MotorController.h>
 #include <PIDcontroller.h>
+#include <ESP32Servo.h>
 
 #define DEBUG_CODE false
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
@@ -36,6 +37,11 @@ void controlLoopTask(void * parameter) {
   PIDcontroller m3_controller(0.9, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
   PIDcontroller m4_controller(1.4, 0.08, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
 
+  Servo gripper;
+  gripper.setPeriodHertz(50);
+  gripper.attach(GRIPPER_PIN,700,2350);
+  gripper.write(GRIPPER_OPEN);
+  
   // TODO: Do the startup control to set the manipulator on start position
   
   Graspe::RobotState localRobotState;
@@ -95,6 +101,8 @@ void controlLoopTask(void * parameter) {
     m3_driver.action(u[2]);
     m4_driver.action(u[3]);
 
+    gripper.write(localRobotState.gripperOn ?  GRIPPER_CLOSED : GRIPPER_OPEN);
+    
     #if DEBUG_CODE
     Serial.print("Motor Action: ");
     Serial.print(u[1]);

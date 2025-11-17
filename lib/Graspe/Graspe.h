@@ -18,13 +18,16 @@
 #define MOTOR3_PIN_B 18
 #define MOTOR4_PIN_A 19
 #define MOTOR4_PIN_B 23
-#define MOTORGARRA_PIN 2
+#define GRIPPER_PIN 2
 
 // Motor Encoder pins
 #define MOTOR1_ENCODER_PIN 36
 #define MOTOR2_ENCODER_PIN 39
 #define MOTOR3_ENCODER_PIN 34
 #define MOTOR4_ENCODER_PIN 35
+
+#define GRIPPER_OPEN 170
+#define GRIPPER_CLOSED 70
 
 #include <Arduino.h>
 
