@@ -34,14 +34,13 @@ draw_robot(np.deg2rad(q_init_deg), ax_3d_2, canvas_3d_2)
 # cria sliders no frame direito
 sliders = criar_sliders(frame_direita, q_init_deg, qlims_deg, q_atual_deg, draw_robot, ax_3d_1, canvas_3d_1)
 
-# cria o frame de registro de posições no frame direito
-criar_frame_registro(frame_direita, q_atual_deg, draw_robot, window, ax_3d_2, canvas_3d_2)
-
 # Cria o link serial e o frame de controle no frame direito
 link = SerialLink(port="/dev/ttyACM0", baudrate=115200)
 
 serial_frame = SerialControlFrame(frame_direita, link, q_atual_deg)
 serial_frame.pack(fill="x", padx=10, pady=10)
+
+criar_frame_registro(frame_direita, q_atual_deg, q_real_deg, link, draw_robot, window, ax_3d_2, canvas_3d_2)
 
 # Função para atualizar a visualização 3D com o estado dos sliders
 def update_stick_view():
@@ -58,11 +57,17 @@ def update_real_robot():
     
     if link.is_connected():
         q_real = link.obter_posicao_motor()
-        if  q_real is None:
+        if q_real is None:
             pass
         else:
-            q_real_deg = np.rad2deg(q_real)
-            draw_robot(np.deg2rad(q_real_deg), ax_3d_1, canvas_3d_1)
+            # garante array de float em rad
+            q_real_rad = np.array(q_real, dtype=float)
+
+            # ATUALIZA o conteúdo da lista q_real_deg (compartilhada com positions)
+            q_real_deg[:] = np.rad2deg(q_real_rad)
+
+            # desenha o robô real com a posição recém-lida
+            draw_robot(q_real_rad, ax_3d_1, canvas_3d_1)
 
     # recall again this function after 40ms
     window.after(40, update_real_robot)
