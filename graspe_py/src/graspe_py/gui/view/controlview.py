@@ -1,5 +1,6 @@
 import numpy as np
 import tkinter as tk
+from graspe_py.gui.view.plotsview import PlotView
 from graspe_py.gui.view.slidersview import SlidersView
 from graspe_py.gui.view.trajectoryview import TrajectoryView
 from graspe_py.gui.view.serialcontrolview import SerialControlFrame
@@ -37,7 +38,8 @@ class ControllerView(tk.Frame):
         self.trajectory_frame = TrajectoryView(self, link)
         self.trajectory_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
-        # TODO: Graphs Frame
+        self.plot_frame = PlotView(self)
+        self.plot_frame.grid(row=1, column=0, sticky="new", padx=10, pady=10)
 
     @property
     def get_gripper_state(self):
