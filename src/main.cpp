@@ -8,7 +8,7 @@
 
 #define DEBUG_CODE false
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
-#define CONTROL_LOOP_DELAY_MS 20      // 50 hz control loop
+#define CONTROL_LOOP_DELAY_MS 10      // 100 hz control loop
 #define SERIAL_LOOP_DELAY_MS 100      // 10 hz serial communication loop
 #define HANDSHAKE_RETRY_DELAY_MS 2000 // 2 seconds delay before retrying handshake
 
@@ -33,8 +33,8 @@ void controlLoopTask(void * parameter) {
   MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.01189513862, 2.0e-3, 0.1);
 
   PIDcontroller m1_controller(1.8, 0.1, 0.1, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m2_controller(1.6, 0.1, 0.3, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m3_controller(0.9, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m2_controller(1.7, 0.0, 0.5, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m3_controller(1.4, 0.0, 0.5, CONTROL_LOOP_DELAY_MS/1000.0f);
   PIDcontroller m4_controller(1.4, 0.08, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
 
   Servo gripper;
@@ -135,9 +135,9 @@ void serialBridgeTask(void * parameter) {
 
   // Joint Start position
   localRobotState.jointSetpoint[0] = PI/2;
-  localRobotState.jointSetpoint[1] = 0.8f;
-  localRobotState.jointSetpoint[2] = 1.5f;
-  localRobotState.jointSetpoint[3] = 1.5f;
+  localRobotState.jointSetpoint[1] = PI/4;
+  localRobotState.jointSetpoint[2] = PI/2;
+  localRobotState.jointSetpoint[3] = -PI/4;
 
   // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();

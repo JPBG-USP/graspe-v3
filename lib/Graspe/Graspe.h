@@ -27,7 +27,7 @@
 #define MOTOR4_ENCODER_PIN 35
 
 #define GRIPPER_OPEN 170
-#define GRIPPER_CLOSED 70
+#define GRIPPER_CLOSED 45
 
 #include <Arduino.h>
 
@@ -61,7 +61,7 @@ namespace Graspe{
 
     struct RobotState 
     {
-        float jointSetpoint[4] = {PI/2, 0.8f, 1.5f, 1.5f};
+        float jointSetpoint[4] = {PI/2, PI/4, PI/2, -PI/4};
         float jointPosition[4];
         bool updateController = false;
         bool motorPower = true;
