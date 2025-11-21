@@ -1,4 +1,5 @@
 import numpy as np
+from rpds import List
 
 def compute_waypoint_velocities(q_list, max_vel):
     q_list = np.asarray(q_list)
@@ -24,8 +25,9 @@ def compute_waypoint_velocities(q_list, max_vel):
     return dq
 
 
-def smooth_jtraj(q_list: np.ndarray, num_points: int, max_jvel: float) -> np.ndarray:
+def smooth_jtraj(q_list: np.ndarray, gripper_list, num_points: int, max_jvel: float) -> np.ndarray:
     smooth_jtraj = []
+    gripper_list_out = []
     dq_list = compute_waypoint_velocities(q_list, max_jvel)
 
     for i in range(q_list.shape[0] - 1):
@@ -37,8 +39,9 @@ def smooth_jtraj(q_list: np.ndarray, num_points: int, max_jvel: float) -> np.nda
         seg, _, _ = polynomial_traj(qi, qf, dqi, dqf, num_points)
 
         smooth_jtraj.extend(seg)
+        gripper_list_out.extend([gripper_list[i]] * num_points)
 
-    return np.array(smooth_jtraj)
+    return np.array(smooth_jtraj), gripper_list_out
 
 
 def polynomial_traj(qi, qf, dqi, dqf, num_points):

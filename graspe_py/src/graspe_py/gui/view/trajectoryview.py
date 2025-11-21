@@ -16,6 +16,7 @@ class TrajectoryView(tk.LabelFrame):
         self.q_string: str = ""
 
         self.jtraj = None
+        self.gripper_traj = None
         self.has_trajectory: bool = False
         self.sim_traj: bool = False
 
@@ -49,6 +50,7 @@ class TrajectoryView(tk.LabelFrame):
         self.pos_label = tk.StringVar(value="Nenhuma posição fornecida")
         tk.Label(self, textvariable=self.pos_label, justify="left", bg="white", anchor="w").pack(fill="x")
 
+
     def register_sim_pos(self):
         # Get sim state
         q = self.parent.get_sim_joint_pos
@@ -64,10 +66,12 @@ class TrajectoryView(tk.LabelFrame):
         # Update state
         self.pos_label.set(self.q_string)
 
+
     def register_real_pos(self):
         # TODO: Get real robot position
         self.q_string += f"Juntas=2, Garra: 2\n"
         self.pos_label.set(self.q_string)
+
 
     def clean_traj(self):
         self.q_string = ""
@@ -75,6 +79,7 @@ class TrajectoryView(tk.LabelFrame):
         self.gripper_list = []
         self.pos_label.set("Nenhuma posição fornecida")
         self.has_trajectory = False
+
 
     def simulate_trajectory(self):
 
@@ -89,11 +94,6 @@ class TrajectoryView(tk.LabelFrame):
         
         self.btn_sim_traj.config(text="Simulando Trajetória", bg="darkgray")
         self.sim_traj = True
-        # for i in range(jtraj.shape[0]):
-        #     self.parent.parent.sim_robot_frame.draw_robot(jtraj[i,:], gripper=False)
-        #     self.update_idletasks()
-        #     self.update()
-        # self.btn_sim_traj.config(text="Simular Trajetória", bg="orange")
 
 
     def _create_trajectory(self):
@@ -104,11 +104,12 @@ class TrajectoryView(tk.LabelFrame):
         
         # Generate trajectory
         q_array = np.array(self.q_list)
-        jtraj, wtraj = generate_traj(q_array)
+        jtraj, wtraj, gripper_traj = generate_traj(q_array, self.gripper_list)
 
         # Check if trajectory was created
         if jtraj is None or wtraj is None:
             return None, None
         
         self.jtraj = jtraj
+        self.gripper_traj = gripper_traj
         self.has_trajectory = True

@@ -56,6 +56,17 @@ class ControllerView(tk.Frame):
             return self.trajectory_frame.jtraj[self.iteration,:]
         return self.slider_view.get_joint_pos
 
+    @property
+    def get_sim_state(self):
+        if self.trajectory_frame.sim_traj:
+            self.iteration += 1
+            if self.iteration >= self.trajectory_frame.jtraj.shape[0]:
+                self.trajectory_frame.sim_traj = False
+                self.iteration = 0
+                self.trajectory_frame.btn_sim_traj.config(text="Simular Trajetória", bg="orange")
+            return self.trajectory_frame.jtraj[self.iteration,:], self.trajectory_frame.gripper_traj[self.iteration]
+        return self.slider_view.get_joint_pos, self.serial_frame.get_gripper_state
+
 
 if __name__ == "__main__":
     import tkinter as tk

@@ -6,13 +6,13 @@ from graspe_py.trajectory.joint_trajectory import smooth_jtraj
 from graspe_py.trajectory.workspace_trajectory import linear_wtraj
 
 
-def generate_traj(q_list: np.ndarray, max_joint_vel: float = 0.3, linear_vel: float = 0.02, points_hz: int = 10):
+def generate_traj(q_list: np.ndarray, gripper_list: List[bool], max_joint_vel: float = 0.3, linear_vel: float = 0.02, points_hz: int = 10):
 
     # Finding checkpoints base on q_list
     transforms = GRASPE_ROBOT.fkine(q_list)
 
     # Making linear trajectory on workpace
-    wtraj_list = linear_wtraj(transforms, int(points_hz/2), linear_vel)
+    wtraj_list, gripper_list_out = linear_wtraj(transforms, gripper_list, int(points_hz/2), linear_vel)
 
     # Finding joint's pose on each mid checkpoint
     q_from_wtraj = []
@@ -26,9 +26,9 @@ def generate_traj(q_list: np.ndarray, max_joint_vel: float = 0.3, linear_vel: fl
     q_from_wtraj = np.array(q_from_wtraj)
 
     # Smooth joint traj using 5th-order polynomial
-    smothed_jtraj = smooth_jtraj(q_from_wtraj, int(points_hz/2) , max_joint_vel)
+    smothed_jtraj, gripper_list_out = smooth_jtraj(q_from_wtraj, gripper_list_out, int(points_hz/2) , max_joint_vel)
 
-    return smothed_jtraj, wtraj_list
+    return smothed_jtraj, wtraj_list, gripper_list_out
 
 
 if __name__ == "__main__":

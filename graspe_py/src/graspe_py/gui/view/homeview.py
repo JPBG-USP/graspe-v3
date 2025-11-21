@@ -64,8 +64,7 @@ class HomeView(tk.Frame):
             
 
     def update_sim_robot_view(self):
-        q = self.control_view.get_sim_joint_pos
-        gripper_state = self.control_view.get_gripper_state
+        q, gripper_state = self.control_view.get_sim_state
         self.sim_robot_frame.draw_robot(q, gripper_state)
 
 

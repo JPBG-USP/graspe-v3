@@ -3,9 +3,10 @@ from typing import List
 from spatialmath import SE3
 from graspe_py.simulation import GRASPE_ROBOT
 
-def linear_wtraj(transforms, points_hz: int, linear_vel: float) -> List[SE3]:
+def linear_wtraj(transforms, gripper_list, points_hz: int, linear_vel: float) -> List[SE3]:
     
     wtraj_list: list = []
+    gripper_list_out: list = []
 
     for i in range(len(transforms) - 1):
         T1: SE3 = transforms[i]
@@ -18,8 +19,9 @@ def linear_wtraj(transforms, points_hz: int, linear_vel: float) -> List[SE3]:
         seg = T1.interp(T2, num_points)
         for k in range(len(seg)):
             wtraj_list.append(seg[k])
+            gripper_list_out.append(gripper_list[i])
 
-    return wtraj_list
+    return wtraj_list, gripper_list_out
 
 
 if __name__ == "__main__":
