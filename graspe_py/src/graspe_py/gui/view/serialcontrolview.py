@@ -73,11 +73,16 @@ class SerialControlFrame(tk.LabelFrame):
             self.motor_state = not self.motor_state
             if self.motor_state:
                 self.btn_motors.config(text="Desligar motores", bg="red")
-                msg = "MOTORSON"
+                msg_motor = "MOTORSON"
             else:
                 self.btn_motors.config(text="Ligar motores", bg="green")
-                msg = "MOTORSOFF"
-            self.link.send(msg)
+                msg_motor = "MOTORSOFF"
+
+            pos_q = self.get_real_robot_joint()
+            msg_pos = f"SETALLQ {pos_q[0]:.3f} {pos_q[1]:.3f} {pos_q[2]:.3f} {pos_q[3]:.3f}"
+            
+            self.link.send(msg_pos)
+            self.link.send(msg_motor)
 
         self.btn_motors = tk.Button(
             self, text="Desligar motores", command=toggle_motor, bg="red"
@@ -126,6 +131,18 @@ class SerialControlFrame(tk.LabelFrame):
             return
 
         msg = f"SETALLQ {self._q[0]:.3f} {self._q[1]:.3f} {self._q[2]:.3f} {self._q[3]:.3f}"
+        self.link.send(msg)
+
+
+    def send_position(self, q: np.ndarray):
+        if self.link is None:
+            print("[ERROR] No SerialLink was provided in SerialControlFrame, impossible to send joint position")
+            return
+        if not self.link.is_connected():
+            print("[ERROR] Link is not connected, impossible to send joint positions")
+            return
+
+        msg = f"SETALLQ {q[0]:.3f} {q[1]:.3f} {q[2]:.3f} {q[3]:.3f}"
         self.link.send(msg)
 
     def return_dock(self):

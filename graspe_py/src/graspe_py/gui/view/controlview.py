@@ -94,6 +94,8 @@ class ControllerView(tk.Frame):
                 self.serial_frame.btn_send_traj.config(bg="lightgray")
                 return self.slider_view.get_joint_pos, self.serial_frame.get_gripper_state
 
+            self.serial_frame.send_position(self.trajectory_frame.jtraj[self.iteration,:])
+
             # Save Log
             self.log['desired_pos'].append(list(self.trajectory_frame.jtraj[self.iteration,:]))
             real_q, _ = self.get_real_state
@@ -107,7 +109,7 @@ class ControllerView(tk.Frame):
 
     @property
     def get_real_state(self):
-        return self.serial_frame.get_real_robot_joint(), self.serial_frame.get_gripper_state()
+        return self.serial_frame.get_real_robot_joint(), self.serial_frame.get_gripper_state
     
 
 if __name__ == "__main__":
