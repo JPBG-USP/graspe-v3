@@ -138,7 +138,7 @@ class SerialControlFrame(tk.LabelFrame):
         self.link.send(msg)
 
 
-    def send_position(self, q: np.ndarray):
+    def send_position(self, q: np.ndarray, gripper_state: bool):
         if self.link is None:
             print("[ERROR] No SerialLink was provided in SerialControlFrame, impossible to send joint position")
             return
@@ -148,6 +148,13 @@ class SerialControlFrame(tk.LabelFrame):
 
         msg = f"SETALLQ {q[0]:.3f} {q[1]:.3f} {q[2]:.3f} {q[3]:.3f}"
         self.link.send(msg)
+
+        if gripper_state:
+            msg_grip = "GRIPPERON"
+        else:
+            msg_grip = "GRIPPEROFF"
+        self.link.send(msg_grip)
+
 
     def return_dock(self):
 

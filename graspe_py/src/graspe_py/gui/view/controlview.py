@@ -94,7 +94,7 @@ class ControllerView(tk.Frame):
                 self.serial_frame.btn_send_traj.config(bg="lightgray")
                 return self.slider_view.get_joint_pos, self.serial_frame.get_gripper_state
 
-            self.serial_frame.send_position(self.trajectory_frame.jtraj[self.iteration,:])
+            self.serial_frame.send_position(self.trajectory_frame.jtraj[self.iteration,:], self.trajectory_frame.gripper_traj[self.iteration])
 
             # Save Log
             self.log['desired_pos'].append(list(self.trajectory_frame.jtraj[self.iteration,:]))
