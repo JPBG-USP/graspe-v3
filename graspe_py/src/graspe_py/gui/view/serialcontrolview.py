@@ -99,6 +99,10 @@ class SerialControlFrame(tk.LabelFrame):
         if self.link is None:
             print("[ERROR] No SerialLink was provided in SerialControlFrame, impossible to send trajectory")
         self.real_traj = True
+        self.parent.log = {
+            'desired_pos': [],
+            'real_pos': [],
+        }
         self.btn_send_traj.config(bg="darkgray")
 
 

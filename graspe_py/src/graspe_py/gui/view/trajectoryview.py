@@ -102,6 +102,10 @@ class TrajectoryView(tk.LabelFrame):
                 print("[ERROR] Could not create trajectory, check if all positions are reachable")
                 return
         
+        self.parent.log = {
+            'desired_pos': [],
+            'real_pos': [],
+        }
         self.btn_sim_traj.config(text="Simulando Trajetória", bg="darkgray")
         self.sim_traj = True
 
