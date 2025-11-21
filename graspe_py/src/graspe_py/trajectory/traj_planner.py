@@ -6,7 +6,7 @@ from graspe_py.trajectory.joint_trajectory import smooth_jtraj
 from graspe_py.trajectory.workspace_trajectory import linear_wtraj
 
 
-def generate_traj(q_list: np.ndarray, gripper_list: List[bool], max_joint_vel: float = 0.3, linear_vel: float = 0.02, points_hz: int = 10):
+def generate_traj(q_list: np.ndarray, gripper_list: List[bool], max_joint_vel: float = 0.3, linear_vel: float = 0.02, points_hz: int = 6):
 
     # Finding checkpoints base on q_list
     transforms = GRASPE_ROBOT.fkine(q_list)

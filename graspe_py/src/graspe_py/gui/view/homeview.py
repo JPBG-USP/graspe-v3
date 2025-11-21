@@ -41,13 +41,13 @@ class HomeView(tk.Frame):
         self.main_panned.add(self.robot_view_panned)
         self.main_panned.add(self.control_view, minsize=700)
 
-        self.parent.after(33, self.update_views)
+        self.parent.after(40, self.update_views)
 
 
     def update_views(self):
         self.update_sim_robot_view()
         self.update_real_robot_view()
-        self.parent.after(33, self.update_views)
+        self.parent.after(40, self.update_views)
 
 
     def update_real_robot_view(self):

@@ -1,6 +1,7 @@
 import numpy as np
 import tkinter as tk
 
+
 class SerialControlFrame(tk.LabelFrame):
     def __init__(self, parent, q_init, link = None):
         super().__init__(parent, text="Comunicação com ESP32", bg="lightgray", padx=10, pady=10)
@@ -15,6 +16,7 @@ class SerialControlFrame(tk.LabelFrame):
         self.gripper_state: bool = False
         self.motor_state: bool = True
         self.parent = parent
+        self.real_traj: bool = False
 
         # status label
         self.status_var = tk.StringVar(value="Desconectado")
@@ -89,8 +91,11 @@ class SerialControlFrame(tk.LabelFrame):
         self.btn_returndock.pack(fill="x", pady=3)
 
     def send_traj(self):
-        # TODO: implement send trajectory method
-        pass
+        if self.link is None:
+            print("[ERROR] No SerialLink was provided in SerialControlFrame, impossible to send trajectory")
+        self.real_traj = True
+        self.btn_send_traj.config(bg="darkgray")
+
 
     def connect_esp(self):
 
@@ -109,6 +114,7 @@ class SerialControlFrame(tk.LabelFrame):
         else:
             self.status_var.set("Erro no handshake")
             self.link.disconnect()
+
 
     def send_pos(self):
 
@@ -137,13 +143,15 @@ class SerialControlFrame(tk.LabelFrame):
     @property
     def get_gripper_state(self):
         return self.gripper_state
-    
+
+
     def get_real_robot_joint(self) -> np.ndarray:
         if self.link is None:
             return None
         if not self.link.is_connected():
             return None        
         return self.link.obter_posicao_motor()
+
 
 if __name__ == "__main__":
     import tkinter as tk

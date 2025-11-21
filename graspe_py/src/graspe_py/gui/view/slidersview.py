@@ -17,7 +17,6 @@ class SlidersView(tk.LabelFrame):
         # Seting up sliders
         def update_joints(idx: int, angle: float):
             self._q[idx] = math.radians(angle)
-            self.parent.parent.sim_robot_frame.draw_robot(self._q, gripper=False)
 
         for i in range(4):
             lo, hi = float(self._joint_limits_deg[0, i]), float(self._joint_limits_deg[1, i]) 

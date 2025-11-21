@@ -53,8 +53,7 @@ class TrajectoryView(tk.LabelFrame):
 
     def register_sim_pos(self):
         # Get sim state
-        q = self.parent.get_sim_joint_pos
-        gripper = self.parent.get_gripper_state
+        q, gripper = self.parent.get_sim_state
         
         # Append state
         self.q_list.append(list(q))

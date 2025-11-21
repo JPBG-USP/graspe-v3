@@ -6,28 +6,7 @@ class PlotView(tk.LabelFrame):
     def __init__(self,parent):
         super().__init__(parent,text="Plots",bg="lightgray",padx=10,pady=10)
 
-        ### PLACEHOLDER VALUES ###
-
-        t = np.linspace(0, 5, 300)
-        self.t = t
-        N = len(t)
-        J = 4   # número de juntas
-
-        # q(t)
-        self.q_traj = np.column_stack([np.sin(t + i) for i in range(J)])
-        self.q_sim  = np.column_stack([np.sin(t + i) + 0.03*np.random.randn(N) for i in range(J)])
-        self.q_real = np.column_stack([np.sin(t + i) + 0.06*np.random.randn(N) for i in range(J)])
-
-        # qd(t)
-        self.qd_traj = np.column_stack([np.cos(t + i) for i in range(J)])
-        self.qd_sim  = np.column_stack([np.cos(t + i) + 0.03*np.random.randn(N) for i in range(J)])
-        self.qd_real = np.column_stack([np.cos(t + i) + 0.06*np.random.randn(N) for i in range(J)])
-
-        # qdd(t)
-        self.qdd_traj = np.column_stack([0.5*np.sin(2*t + i) for i in range(J)])
-        self.qdd_sim  = np.column_stack([0.5*np.sin(2*t + i) + 0.03*np.random.randn(N) for i in range(J)])
-        self.qdd_real = np.column_stack([0.5*np.sin(2*t + i) + 0.06*np.random.randn(N) for i in range(J)])
-
+        self.parent = parent
 
         self.btn_q1 = tk.Button(
             self,text="Junta 1",
@@ -53,48 +32,65 @@ class PlotView(tk.LabelFrame):
         )
         self.btn_q4.pack(fill="x", pady=3)
 
+
     def plot_joints(self,idx):
-        t = self.t
 
-        # Seleciona série da junta
-        q_traj  = self.q_traj[:,idx]
-        q_sim   = self.q_sim[:,idx]
-        q_real  = self.q_real[:,idx]
+        logs = self.parent.log
+        traj_array = np.array(logs['desired_pos'])
+        real_array = np.array(logs['real_pos'])
+    
 
-        qd_traj = self.qd_traj[:,idx]
-        qd_sim  = self.qd_sim[:,idx]
-        qd_real = self.qd_real[:,idx]
+        if traj_array.shape[0] == 0 and real_array.shape[0] == 0:
+            print("[ERROR] No log data available to plot")
+            return
 
-        qdd_traj = self.qdd_traj[:,idx]
-        qdd_sim  = self.qdd_sim[:,idx]
-        qdd_real = self.qdd_real[:,idx]
+        if not real_array.shape[0] == 0:
+            q_real  = real_array[:,idx]
+            qd_real = np.diff(real_array[:,idx], n=1, prepend=real_array[0,idx], append=real_array[-1,idx])
+            qdd_real = np.diff(real_array[:,idx], n=2, prepend=real_array[0,idx], append=real_array[-1,idx])
+        else:
+            q_real = np.array([])
+            qd_real = np.array([])
+            qdd_real =  np.array([])
+
+        if not traj_array.shape[0] == 0:
+            q_traj  = traj_array[:,idx]
+            qd_traj = np.diff(traj_array[:,idx], n=1, prepend=traj_array[0,idx], append=traj_array[-1,idx])
+            qdd_traj = np.diff(traj_array[:,idx], n=2, prepend=traj_array[0,idx], append=traj_array[-1,idx])
+        else:
+            q_traj = np.array([])
+            qd_traj = np.array([])
+            qdd_traj = np.array([])
 
         fig, axes = plt.subplots(3, 1, figsize=(9, 8), sharex=True)
         fig.suptitle(f"Junta {idx+1} - q, qd, qdd", fontsize=14)
 
         # --- q ---
         ax = axes[0]
-        ax.plot(t, q_traj, label="q traj", linewidth=2)
-        ax.plot(t, q_sim,  label="q sim",  linestyle="--")
-        ax.plot(t, q_real, label="q real", linestyle=":")
+        if q_traj.shape[0] > 1:
+            ax.plot(q_traj, label="q traj", linewidth=2)
+        if q_real.shape[0] > 1:
+            ax.plot(q_real, label="q real", linestyle=":")
         ax.set_ylabel("q [rad]")
         ax.grid(True)
         ax.legend(loc="upper right")
 
         # --- qd ---
         ax = axes[1]
-        ax.plot(t, qd_traj, label="qd traj", linewidth=2)
-        ax.plot(t, qd_sim,  label="qd sim",  linestyle="--")
-        ax.plot(t, qd_real, label="qd real", linestyle=":")
+        if qd_traj.shape[0] > 1:
+            ax.plot(qd_traj, label="qd traj", linewidth=2)
+        if qd_real.shape[0] > 1:
+            ax.plot(qd_real, label="qd real", linestyle=":")
         ax.set_ylabel("qd [rad/s]")
         ax.grid(True)
         ax.legend(loc="upper right")
 
         # --- qdd ---
         ax = axes[2]
-        ax.plot(t, qdd_traj, label="qdd traj", linewidth=2)
-        ax.plot(t, qdd_sim,  label="qdd sim",  linestyle="--")
-        ax.plot(t, qdd_real, label="qdd real", linestyle=":")
+        if qdd_traj.shape[0] > 1:
+            ax.plot(qdd_traj, label="qdd traj", linewidth=2)
+        if qdd_real.shape[0] > 1:
+            ax.plot(qdd_real, label="qdd real", linestyle=":")
         ax.set_ylabel("qdd [rad/s²]")
         ax.set_xlabel("Tempo [s]")
         ax.grid(True)
