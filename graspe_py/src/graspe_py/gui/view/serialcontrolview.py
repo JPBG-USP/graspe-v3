@@ -2,7 +2,7 @@ import numpy as np
 import tkinter as tk
 
 class SerialControlFrame(tk.LabelFrame):
-    def __init__(self, parent, q, link = None):
+    def __init__(self, parent, q_init, link = None):
         super().__init__(parent, text="Comunicação com ESP32", bg="lightgray", padx=10, pady=10)
         
         if link is None:
@@ -10,7 +10,8 @@ class SerialControlFrame(tk.LabelFrame):
         
         # state variables
         self.link = link
-        self._q = q
+        self._q = q_init
+        self._q_init = q_init.copy()
         self.gripper_state: bool = False
         self.motor_state: bool = True
         self.parent = parent
@@ -81,6 +82,11 @@ class SerialControlFrame(tk.LabelFrame):
         )
         self.btn_motors.pack(side="bottom", fill="x", pady=4)
 
+        self.btn_returndock = tk.Button(
+            self, text="Retornar ao repouso",
+            command=self.return_dock
+        )
+        self.btn_returndock.pack(fill="x", pady=3)
 
     def send_traj(self):
         # TODO: implement send trajectory method
@@ -110,10 +116,22 @@ class SerialControlFrame(tk.LabelFrame):
             print("[ERROR] No SerialLink was provided in SerialControlFrame, impossible to send joint position")
             return
         if not self.link.is_connected():
-            print("[ERROR] Link is not connect, impossible to send joint positions")
+            print("[ERROR] Link is not connected, impossible to send joint positions")
             return
 
         msg = f"SETALLQ {self._q[0]:.3f} {self._q[1]:.3f} {self._q[2]:.3f} {self._q[3]:.3f}"
+        self.link.send(msg)
+
+    def return_dock(self):
+
+        if self.link is None:
+            print("[ERROR] No SerialLink was provided in SerialControlFrame, impossible to send joint position")
+            return
+        if not self.link.is_connected():
+            print("[ERROR] Link is not connected, impossible to send joint positions")
+            return
+    
+        msg = f"SETALLQ {self._q_init[0]:.3f} {self._q_init[1]:.3f} {self._q_init[2]:.3f} {self._q_init[3]:.3f}"
         self.link.send(msg)
 
     @property

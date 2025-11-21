@@ -6,6 +6,8 @@ class PlotView(tk.LabelFrame):
     def __init__(self,parent):
         super().__init__(parent,text="Plots",bg="lightgray",padx=10,pady=10)
 
+        ### PLACEHOLDER VALUES ###
+
         t = np.linspace(0, 5, 300)
         self.t = t
         N = len(t)
@@ -25,7 +27,6 @@ class PlotView(tk.LabelFrame):
         self.qdd_traj = np.column_stack([0.5*np.sin(2*t + i) for i in range(J)])
         self.qdd_sim  = np.column_stack([0.5*np.sin(2*t + i) + 0.03*np.random.randn(N) for i in range(J)])
         self.qdd_real = np.column_stack([0.5*np.sin(2*t + i) + 0.06*np.random.randn(N) for i in range(J)])
-
 
 
         self.btn_q1 = tk.Button(
