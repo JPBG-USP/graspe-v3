@@ -1,18 +1,12 @@
-import math
 import numpy as np
 import tkinter as tk
-from matplotlib.figure import Figure
-from graspe_py.simulation import GRASPE_ROBOT
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-# from .serialcontrolview import SerialControlFrame
-from graspe_py.gui.view.serialcontrolview import SerialControlFrame
-from graspe_py.gui.view.trajectoryview import TrajectoryView
-
 from graspe_py.gui.view.slidersview import SlidersView
+from graspe_py.gui.view.trajectoryview import TrajectoryView
+from graspe_py.gui.view.serialcontrolview import SerialControlFrame
 
 
 class ControllerView(tk.Frame):
-    def __init__(self, parent, q_init: np.ndarray):
+    def __init__(self, parent, q_init: np.ndarray, link = None):
         super().__init__(parent)
 
         self.parent = parent
@@ -31,24 +25,17 @@ class ControllerView(tk.Frame):
         self.iteration: int = 0
 
         # Views
-
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
-
         self.slider_view = SlidersView(self, q_init)
         self.slider_view.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        # self.slider_view.pack(fill="x", padx=10, pady=10)
 
-        self.serial_frame = SerialControlFrame(self, q_init, None)
+        self.serial_frame = SerialControlFrame(self, q_init, link)
         self.serial_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
-        # self.serial_frame.pack(fill="x", padx=10, pady=10)
-
-        self.trajectory_frame = TrajectoryView(self, None)
+        self.trajectory_frame = TrajectoryView(self, link)
         self.trajectory_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
-
-        # self.trajectory_frame.pack(fill="x", padx=10, pady=10)
 
         # TODO: Graphs Frame
 
@@ -63,6 +50,7 @@ class ControllerView(tk.Frame):
             if self.iteration >= self.trajectory_frame.jtraj.shape[0]:
                 self.trajectory_frame.sim_traj = False
                 self.iteration = 0
+                self.trajectory_frame.btn_sim_traj.config(text="Simular Trajetória", bg="orange")
             return self.trajectory_frame.jtraj[self.iteration,:]
         return self.slider_view.get_joint_pos
 

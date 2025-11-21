@@ -6,9 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class RobotView(tk.Frame):
     def __init__(self, parent, title: str = None):
-        super().__init__(parent)
-
-        self.configure(bg="white", width=700, height=300)
+        super().__init__(parent, bg="white", width=700, height=300)
 
         self.q = np.zeros(4)
         self.gripper_status: bool = False

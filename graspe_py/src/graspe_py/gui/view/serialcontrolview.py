@@ -49,12 +49,9 @@ class SerialControlFrame(tk.LabelFrame):
             if self.gripper_state:
                 self.btn_gripper.config(text="Abrir garra")
                 msg = "GRIPPERON"
-                # self.parent.parent.real_robot_frame.draw_robot(q, True)
             else:
                 self.btn_gripper.config(text="Fechar garra")
                 msg = "GRIPPEROFF"
-                # self.parent.parent.real_robot_frame.draw_robot(q, False)
-
             self.link.send(msg)
 
         self.btn_gripper = tk.Button(
@@ -85,9 +82,8 @@ class SerialControlFrame(tk.LabelFrame):
         self.btn_motors.pack(side="bottom", fill="x", pady=4)
 
 
-        # TODO: send trajectory
-
     def send_traj(self):
+        # TODO: implement send trajectory method
         pass
 
     def connect_esp(self):
