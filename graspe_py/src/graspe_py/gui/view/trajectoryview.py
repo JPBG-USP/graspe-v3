@@ -68,9 +68,20 @@ class TrajectoryView(tk.LabelFrame):
 
 
     def register_real_pos(self):
-        # TODO: Get real robot position
-        self.q_string += f"Juntas=2, Garra: 2\n"
+        # Get real state
+        q : np.array = np.asarray(self.parent.serial_frame.get_real_robot_joint())
+        gripper = self.parent.get_gripper_state
+        
+        # Append state
+        self.q_list.append(list(q))
+        self.gripper_list.append(gripper)
+        self.q_string += (
+            f"Juntas={np.array2string(q, formatter={'float_kind':lambda x: f'{x:.2f}'})}, "
+            f"Garra: {'Fechado' if gripper else 'Aberto'}\n"
+        )
+        # Update state
         self.pos_label.set(self.q_string)
+
 
 
     def clean_traj(self):
