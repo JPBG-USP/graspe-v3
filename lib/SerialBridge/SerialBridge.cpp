@@ -272,6 +272,18 @@ SerialBridgeCommands::Command SerialBridge::readCommand(){
         return cmd;
     }
 
+    if(msg.startsWith("GRIPPERON")){
+        cmd.type = SerialBridgeCommands::CHANGE_GRIPPER_STATE;
+        cmd.data.gripper.state = true;
+        return cmd;
+    }
+
+    if(msg.startsWith("GRIPPEROFF")){
+        cmd.type = SerialBridgeCommands::CHANGE_GRIPPER_STATE;
+        cmd.data.gripper.state = false;
+        return cmd;
+    }
+
     cmd.type = SerialBridgeCommands::NO_COMMAND;
     return cmd;
 }
@@ -313,6 +325,10 @@ bool SerialBridge::sendCommandAck(SerialBridgeCommands::Command cmd){
         return true;
     case SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE:
         ack_msg += "MOTORS" + String(cmd.data.motors_power.state ? "ON" : "OFF");
+        sendMessage(ack_msg);
+        return true;
+    case SerialBridgeCommands::CHANGE_GRIPPER_STATE:
+        ack_msg += "GRIPPER" + String(cmd.data.gripper.state ? "ON" : "OFF");
         sendMessage(ack_msg);
         return true;
     default:

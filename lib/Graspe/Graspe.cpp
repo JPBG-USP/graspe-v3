@@ -23,6 +23,7 @@ void Graspe::updateRobotStateSerialLoop(RobotState &localRobotState, RobotState 
 
     globalRobotState.updateController = localRobotState.updateController;
     globalRobotState.motorPower = localRobotState.motorPower;
+    globalRobotState.gripperOn = localRobotState.gripperOn;
     
     // Update controler gains if is true
     if (globalRobotState.updateController)
@@ -62,6 +63,7 @@ void Graspe::updateRobotStateControlLoop(RobotState &localRobotState, RobotState
 
     localRobotState.updateController = globalRobotState.updateController;
     localRobotState.motorPower = globalRobotState.motorPower;
+    localRobotState.gripperOn = globalRobotState.gripperOn;
 
     if (globalRobotState.updateController)
     {

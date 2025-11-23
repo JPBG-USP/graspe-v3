@@ -4,10 +4,11 @@
 #include <MotorEncoder.h>
 #include <MotorController.h>
 #include <PIDcontroller.h>
+#include <ESP32Servo.h>
 
 #define DEBUG_CODE false
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
-#define CONTROL_LOOP_DELAY_MS 20      // 50 hz control loop
+#define CONTROL_LOOP_DELAY_MS 10      // 100 hz control loop
 #define SERIAL_LOOP_DELAY_MS 100      // 10 hz serial communication loop
 #define HANDSHAKE_RETRY_DELAY_MS 2000 // 2 seconds delay before retrying handshake
 
@@ -32,10 +33,15 @@ void controlLoopTask(void * parameter) {
   MotorEncoder m4_encoder(MOTOR4_ENCODER_PIN, 234, 1586, -PI/2, 0.0, 0.01189513862, 2.0e-3, 0.1);
 
   PIDcontroller m1_controller(1.8, 0.1, 0.1, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m2_controller(1.6, 0.1, 0.3, CONTROL_LOOP_DELAY_MS/1000.0f);
-  PIDcontroller m3_controller(0.9, 0.0, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m2_controller(1.7, 0.0, 0.5, CONTROL_LOOP_DELAY_MS/1000.0f);
+  PIDcontroller m3_controller(1.4, 0.0, 0.5, CONTROL_LOOP_DELAY_MS/1000.0f);
   PIDcontroller m4_controller(1.4, 0.08, 0.0, CONTROL_LOOP_DELAY_MS/1000.0f);
 
+  Servo gripper;
+  gripper.setPeriodHertz(50);
+  gripper.attach(GRIPPER_PIN,700,2350);
+  gripper.write(GRIPPER_OPEN);
+  
   // TODO: Do the startup control to set the manipulator on start position
   
   Graspe::RobotState localRobotState;
@@ -95,6 +101,8 @@ void controlLoopTask(void * parameter) {
     m3_driver.action(u[2]);
     m4_driver.action(u[3]);
 
+    gripper.write(localRobotState.gripperOn ?  GRIPPER_CLOSED : GRIPPER_OPEN);
+    
     #if DEBUG_CODE
     Serial.print("Motor Action: ");
     Serial.print(u[1]);
@@ -127,9 +135,9 @@ void serialBridgeTask(void * parameter) {
 
   // Joint Start position
   localRobotState.jointSetpoint[0] = PI/2;
-  localRobotState.jointSetpoint[1] = 0.8f;
-  localRobotState.jointSetpoint[2] = 1.5f;
-  localRobotState.jointSetpoint[3] = 1.5f;
+  localRobotState.jointSetpoint[1] = PI/4;
+  localRobotState.jointSetpoint[2] = PI/2;
+  localRobotState.jointSetpoint[3] = -PI/4;
 
   // Begin serial communication loop
   TickType_t lastWakeTime = xTaskGetTickCount();
@@ -164,6 +172,10 @@ void serialBridgeTask(void * parameter) {
       if (command.type == SerialBridgeCommands::CHANGE_MOTOR_POWER_STATE){
         localRobotState.motorPower = command.data.motors_power.state;
       }
+      if (command.type == SerialBridgeCommands::CHANGE_GRIPPER_STATE){
+        localRobotState.gripperOn = command.data.gripper.state;
+      }
+      
     }
     xSemaphoreTake(stateMutex, portMAX_DELAY);
       Graspe::updateRobotStateSerialLoop(localRobotState, currentRobotState);
@@ -177,7 +189,7 @@ void serialBridgeTask(void * parameter) {
         localRobotState.jointPosition[2],
         localRobotState.jointPosition[3]
     );
-
+    
     vTaskDelayUntil(&lastWakeTime, dt);
   }
 }
