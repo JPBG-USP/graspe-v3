@@ -38,8 +38,9 @@ def smooth_jtraj(q_list: np.ndarray, gripper_list, num_points: int, max_jvel: fl
 
         seg, _, _ = polynomial_traj(qi, qf, dqi, dqf, num_points)
 
-        smooth_jtraj.extend(seg)
-        gripper_list_out.extend([gripper_list[i]] * num_points)
+        smooth_jtraj.extend(seg[1:] if i > 0 else seg)  # Avoid duplicating points
+        if gripper_list:
+            gripper_list_out.extend([gripper_list[i]] * num_points)
 
     return np.array(smooth_jtraj), gripper_list_out
 
@@ -156,8 +157,7 @@ if __name__ == "__main__":
         [1.52, 1.29, 0.79, -1.24],
     ])
 
-    jtraj_list = smooth_jtraj(q_list, 100, 1.0)
-
+    jtraj_list, _ = smooth_jtraj(q_list, None, 100, 1.0)
     num_joints = q_list.shape[1]
     fig, axs = plt.subplots(num_joints, 1, figsize=(8, 10), sharex=True)
 

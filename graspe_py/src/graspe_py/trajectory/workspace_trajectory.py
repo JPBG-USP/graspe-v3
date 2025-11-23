@@ -18,8 +18,12 @@ def linear_wtraj(transforms, gripper_list, points_hz: int, linear_vel: float) ->
 
         seg = T1.interp(T2, num_points)
         for k in range(len(seg)):
+            if k == 0 and i > 0:
+                continue  # Avoid duplicating points
+            
             wtraj_list.append(seg[k])
-            gripper_list_out.append(gripper_list[i])
+            if gripper_list:
+                gripper_list_out.append(gripper_list[i])
 
     return wtraj_list, gripper_list_out
 
@@ -37,7 +41,7 @@ if __name__ == "__main__":
     ])
 
     transforms = GRASPE_ROBOT.fkine(q_list)
-    smooth_T = linear_wtraj(transforms, 10, 0.05)
+    smooth_T, _ = linear_wtraj(transforms, None, 10, 0.05)
 
     # Extract XYZ points
     xs = np.array([T.t[0] for T in smooth_T])
@@ -67,5 +71,17 @@ if __name__ == "__main__":
     ax.legend()
     ax.grid(True)
 
+    plt.tight_layout()
+    plt.show()
+
+
+    plt.plot(xs, label="X (m)", color="red")
+    plt.plot(ys, label="Y (m)", color="green")
+    plt.plot(zs, label="Z (m)", color="blue")
+    plt.xlabel("Samples")
+    plt.ylabel("Position (m)")
+    plt.title("End-Effector Position Over Time")
+    plt.legend()
+    plt.grid(True)
     plt.tight_layout()
     plt.show()
