@@ -18,8 +18,8 @@ def linear_wtraj(transforms, gripper_list, points_hz: int, linear_vel: float) ->
 
         seg = T1.interp(T2, num_points)
         for k in range(len(seg)):
-            if k == 0 and i > 0:
-                continue  # Avoid duplicating points
+            # if k == 0 and i > 0:
+            #     continue  # Avoid duplicating points
             
             wtraj_list.append(seg[k])
             if gripper_list:

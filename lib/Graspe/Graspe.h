@@ -27,7 +27,7 @@
 #define MOTOR4_ENCODER_PIN 35
 
 #define GRIPPER_OPEN 170
-#define GRIPPER_CLOSED 45
+#define GRIPPER_CLOSED 80
 
 #include <Arduino.h>
 

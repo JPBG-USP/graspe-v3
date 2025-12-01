@@ -9,7 +9,7 @@
 #define DEBUG_CODE false
 #define HANDSHAKE_TIMEOUT_MS 10000    // 10 seconds timeout for handshake
 #define CONTROL_LOOP_DELAY_MS 10      // 100 hz control loop
-#define SERIAL_LOOP_DELAY_MS 100      // 10 hz serial communication loop
+#define SERIAL_LOOP_DELAY_MS 40      // 10 hz serial communication loop
 #define HANDSHAKE_RETRY_DELAY_MS 2000 // 2 seconds delay before retrying handshake
 
 // Multi Treading Task Handles

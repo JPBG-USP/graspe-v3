@@ -11,10 +11,13 @@ def compute_waypoint_velocities(q_list, max_vel):
     for i in range(N):
         if i == 0:
             # Forward difference
-            dq[i] = q_list[i+1] - q_list[i]
+            # dq[i] = q_list[i+1] - q_list[i]
+            dq[i] = 0.0
+
         elif i == N - 1:
             # Backward difference
-            dq[i] = q_list[i] - q_list[i-1]
+            # dq[i] = q_list[i] - q_list[i-1]
+            dq[i] = 0.0
         else:
             # Central difference
             dq[i] = 0.5 * (q_list[i+1] - q_list[i-1])
@@ -38,7 +41,8 @@ def smooth_jtraj(q_list: np.ndarray, gripper_list, num_points: int, max_jvel: fl
 
         seg, _, _ = polynomial_traj(qi, qf, dqi, dqf, num_points)
 
-        smooth_jtraj.extend(seg[1:] if i > 0 else seg)  # Avoid duplicating points
+        # smooth_jtraj.extend(seg[1:] if i > 0 else seg)  # Avoid duplicating points
+        smooth_jtraj.extend(seg)  
         if gripper_list:
             gripper_list_out.extend([gripper_list[i]] * num_points)
 
